@@ -1,0 +1,50 @@
+[project]
+
+name        = "ctgen"
+version     = "0.1.0"
+description = "Coordinate-transforms code generator"
+authors     = [
+    { name = "Marco Frigerio", email = "marco.frigerio17@pm.me" }
+]
+
+license = { file = "LICENSE" }
+readme = "readme.md"
+
+requires-python = ">=3.4"
+
+dependencies = [
+    "numpy",
+    "sympy",
+    "lupa",
+    "pyyaml",
+    "kgprim"
+]
+
+urls = { home= "https://github.com/mfrigerio17/ctgen" }
+
+[project.scripts]
+ctgen = "ctgen.gen:main"
+
+
+[tool.setuptools]
+
+packages = ["ctgen", "ctgen_backends.cpp_iitrbd", "ctgen_backends.octave"]
+
+[tool.setuptools.package-dir]
+
+"ctgen" = "src/ctgen"
+
+#"ctgen_backends" = "backends/cpp_iitrbd/src/ctgen_backends/"
+#"ctgen_backends" = "backends/octave/src/ctgen_backends/"
+## How to make the above work? I want the installation to include
+## modules that belong to the namespace package, but are stored in
+## separate folders
+
+"ctgen_backends.cpp_iitrbd" = "backends/cpp_iitrbd/src/ctgen_backends/cpp_iitrbd"
+"ctgen_backends.octave"     = "backends/octave/src/ctgen_backends/octave"
+
+
+
+[tool.setuptools.package-data]
+
+"*" = ["*.lua"]

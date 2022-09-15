@@ -1,0 +1,80 @@
+## This is a sample configuration file for the CTGen tool.
+
+## Usage of the configuration file is optional. Command line switches have
+## precedence over the configuration file. At the moment, the only thing that
+## cannot be set at the command line and thus requires this file, is the
+## 'desired-transforms' (see below).
+
+model: CtgenSample
+
+##
+# Desired code generation backend
+
+backend : cpp_iitrbd
+
+##
+# Output directory
+
+output  : /tmp/ctgen/cpp
+
+##
+# Backend-specific configuration file.
+# Use this option to override the configuration of the text generators of the
+# backend you intend to use. Take the original configuration file (in the source
+# tree) as a template. Only override the entries which are relevant for you.
+# The file must be a valid Lua source file, returning a table.
+
+#backend-config : config.lua
+
+
+##
+# Specify which transforms should be generated.
+# The default (if this entry is missing) is to generate a transform for each
+# motion in the input model; the polarity is such that the right frame of the
+# transform is the end frame of the motion.
+#
+# See https://robcogenteam.bitbucket.io/algebra.html#coordinate-transformation-matrices
+# for an explanation of the terminology "left"/"right" frame.
+#
+# The string values (like "frameA") must be frames defined in the input model.
+
+desired-transforms:
+  - left_frame: "frameA"
+    right_frame: "frameB"
+  - left_frame: "frameD"
+    right_frame: "frameB"
+  - left_frame: "frameE"
+    right_frame: "frameG"
+
+
+##
+# Which matrix representation do you need?
+
+representations:
+  - homogeneous
+#  - spatial_motion
+#  - spatial_force
+#  - pure_rotation
+
+
+# NOTE: some backends (like `cpp_iitrbd`) generate smart types, which can
+# emulate the different representations as well as the different polarities,
+# with a single object. In these cases, the distinction between left/right
+# frame and the chosen representation here in the configuration are not
+# relevant.
+
+
+##
+# Constants folding policy.
+# One of "default", "fold-constants", "reify-floats".
+# By default, the float literals in the source model appear in the generated
+# code also as float literals, whereas the explicitly named constants in the
+# model appear as named, constant variables.
+# With "fold-constants", even the explicit model constants will be replaced by
+# the float literal corresponding to their value.
+# With "reify-floats", the float literals in the model will be transformed into
+# named constants (with an auto-generated name), and no float-literal will
+# appear in the generated code (besides of course the place where the constants
+# are defined).
+
+constant-folding: reify-floats

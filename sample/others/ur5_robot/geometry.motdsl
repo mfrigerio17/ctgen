@@ -1,0 +1,21 @@
+// A model of the geometry of the UR5 robotic manipulator.
+// We assume reference frames are attached to the robot according to the
+// convention described here:
+// https://robcogenteam.bitbucket.io/rmodel.html#geometry
+
+Model ur5
+
+Convention = currentFrame
+
+shoulder_pan -> shoulder :  rotz(q0)
+shoulder_lift -> upperarm :  rotz(q1)
+elbow -> forearm :  rotz(q2)
+wr1 -> wrist_1 :  rotz(q3)
+wr2 -> wrist_2 :  rotz(q4)
+wr3 -> wrist_3 :  rotz(q5)
+base -> shoulder_pan :  trz(0.089159)
+shoulder -> shoulder_lift :  trx(0.13585) roty(0.5*pi) rotz(pi)
+upperarm -> elbow :  trx(0.425) trz(-0.1197)
+forearm -> wr1 :  trx(0.39225) trz(0.09315)
+wrist_1 -> wr2 :  trx(0.09475) roty(0.5*pi) rotz(pi)
+wrist_2 -> wr3 :  trx(0.0825) roty(0.5*pi)

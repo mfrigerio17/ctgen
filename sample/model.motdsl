@@ -1,0 +1,42 @@
+// This document illustrates the syntax of the input files for the CtGen tool.
+// I called this language "MotionsDSL".
+// Every MotionsDSL document is a list of specification of rigid motions (or
+// relative poses - the same thing in this context).
+
+// First we give a name to this model
+Model CtgenSample
+
+// Choose how the motion-steps in the sequences below have to be interpreted.
+Convention = currentFrame
+// In this case, all motion-steps are with reference to the current, moving
+// frame. The alternative is 'fixedFrame'.
+
+// Now we start listing the "motions". The format:
+// <frame1> -> <frame2> : <steps>
+// is interpreted as: to move from <frame1> to <frame2>, <steps> have to be
+// taken.
+// Here are some samples:
+
+// A rotation about X followed by a translation along Y.
+// Use float literals for constant amounts.
+frameA -> frameB : rotx(0.2) try(3.1)
+
+// Demonstrate the use of
+// - an explicitly named constant, with syntax: 'c:<name>:<value>'
+// - a PI expression (also constant)
+frameB -> frameC : rotz( c:rz:0.6 ) roty( pi /2 )
+
+// Demonstrate the use of parameters, and parameter expressions.
+// The basic format is: 'p:<name>'
+// Note that a parameter (like 'my_tr') does not need to be the sole argument
+// of a motion step, as it may be part of an expression.
+frameC -> frameD : trz(p:my_tr/2)  trx(p:my_tr/2) roty( p:my_rot )
+frameD -> frameE : rotz(p:my_rot) rotx(2*p:my_rot)
+
+// Demonstrate the use of variables. Regular identifiers (no special syntax)
+// are considered variables.
+frameE -> frameF : rotx(q0)
+frameF -> frameG : roty(q1) trz(q2)
+
+// Variables and a parameter.
+frameG -> frameH : rotx(q0) trz( p:my_tr ) roty(q1)

@@ -1,0 +1,20 @@
+model: ur5
+
+backend : cpp_iitrbd
+output: /tmp/ctgen/ur5/cpp
+
+
+# Ask for the transform of each kinematic pair in the manipulator
+desired-transforms:
+  - left_frame: "base"
+    right_frame: "shoulder"
+  - left_frame: "shoulder"
+    right_frame: "upperarm"
+  - left_frame: "upperarm"
+    right_frame: "forearm"
+  - left_frame: "forearm"
+    right_frame: "wrist_1"
+  - left_frame: "wrist_1"
+    right_frame: "wrist_2"
+  - left_frame: "wrist_2"
+    right_frame: "wrist_3"
