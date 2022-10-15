@@ -3,7 +3,7 @@ Use the switch `--lang cpp_iitrbd` to use it.
 
 # Dependencies
 The generated C++ code depends on a few header files from the
-[iit-rbd](web-iitrbd) library, which in turn depens on [Eigen](web-eigen).
+[iit-rbd][web-iitrbd] library, which in turn depens on [Eigen][web-eigen].
 
 # Generated code
 A type (class) is generated for every desired transform in the input model.
@@ -111,5 +111,5 @@ to it:
 ```
 
 
-[web-iitrbd]: https://bitbucket.org/robcogendevs/iit-rbd/
+[web-iitrbd]: https://bitbucket.org/robcogenteam/cpp-iitrbd
 [web-eigen]: https://eigen.tuxfamily.org
