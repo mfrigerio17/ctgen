@@ -92,44 +92,29 @@ def floatLiteralsAsConstants(transforms_list):
     return new_list
 
 
-class StatementsGenerator:
+class SymbolicCoefficientsResolver:
     '''
-    Helper class to generate some common code statements related to a model and
-    individual transforms (i.e. matrices).
+    Helper class to transform the symbolic matrix coefficients into some
+    text expressions suitable for code generation.
+
+    Of course the specifities of such transformation will depend on the
+    language backend provided to the constructor.
     '''
 
-    def __init__(self, aCodeGenerator):
+    def __init__(self, backendSpecifics):
         '''
-        The argument `aCodeGenerator` is a configuration object. Its fields
+        The argument `backendSpecifics` is a configuration object. Its fields
         `langSpecifics`, `variableAccess`, `parameterAccess`, `constantAccess`
         encapsulate the details of a specific code-generation backend.
 
         TODO document the expected API of these objects
         '''
-        self.lang      = aCodeGenerator.langSpecifics
-        self.varAccess = aCodeGenerator.variableAccess
-        self.parAccess = aCodeGenerator.parameterAccess
-        self.cnstAccess= aCodeGenerator.constantAccess
+        self.lang      = backendSpecifics.langSpecifics
+        self.varAccess = backendSpecifics.variableAccess
+        self.parAccess = backendSpecifics.parameterAccess
+        self.cnstAccess= backendSpecifics.constantAccess
 
-    def getMatrixSpecificGenerators(self, matrixMetadata):
-        resolved = self._resolveSymbols(matrixMetadata)
-        def constantCoefficientsAssignments( indexableVariable):
-            for row, col in matrixMetadata.constantCoefficients :
-                value = resolved[row, col]
-                if value != 0.0 : # we do not generate assignments of zeros, assuming the matrix is initialized
-                    yield self.lang.matrixAssignment(indexableVariable, row, col, value.__str__())
-
-        def variableCoefficientsAssignments(indexableVariable):
-            for r,c in matrixMetadata.variableCoefficients :
-                yield self.lang.matrixAssignment(indexableVariable, r,c, resolved[r,c].__str__())
-
-        return {
-            'constantCoefficientsAssignments' : constantCoefficientsAssignments,
-            'variableCoefficientsAssignments' : variableCoefficientsAssignments
-        }
-
-
-    def _resolveSymbols(self, matrixMetadata):
+    def resolveSymbols(self, matrixMetadata):
         # A slightly hacky way of replacing expressions with code
         # that would resolve to the value.
         # We replace the sine/cosine of any symbol representing a rotation, and
@@ -172,7 +157,7 @@ class StatementsGenerator:
 
         return matrixMetadata.mx.subs( replacements )  # Sympy replacement
 
-
+    # @unused?
     def constantsDefinitions(self, constantsDict):
         '''
         A helper function to generate code that defines a list of variables
