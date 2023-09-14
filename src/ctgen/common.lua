@@ -75,6 +75,12 @@ local function pylen(seq)
   return math.floor( python.builtins.len(seq) )
 end
 
+local function py_matrix_coeff(mx)
+    local accessor = python.eval("lambda mx,r,c : mx[r,c]")
+    return function(r,c)
+        return accessor(mx, r, c)
+    end
+end
 
 common = {
     tpleval = tpleval,
@@ -85,4 +91,5 @@ common = {
     myiter = myiter,
     table_override = table_override,
     pylen = pylen,
+    py_matrix_coeff = py_matrix_coeff,
 }
