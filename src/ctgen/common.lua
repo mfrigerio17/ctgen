@@ -93,3 +93,5 @@ common = {
     pylen = pylen,
     py_matrix_coeff = py_matrix_coeff,
 }
+
+ctgen__common = common
