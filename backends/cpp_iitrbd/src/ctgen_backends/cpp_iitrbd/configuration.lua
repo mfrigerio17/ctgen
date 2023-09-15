@@ -105,6 +105,10 @@ local config = {
     constants = {
         generate_local_defs = true,
         local_defs_container_name = 'ModelConstants',
+
+        --- The expression that evaluates to the value of the given constant.
+        -- This is only necessary when not using the default code generation
+        -- policy (`generate_local_defs` set to false).
         value_expression = function(constant)
             return model_property_to_varname(constant)
         end,

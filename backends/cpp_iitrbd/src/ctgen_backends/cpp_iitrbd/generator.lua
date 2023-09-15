@@ -1,5 +1,6 @@
-local common = common
-
+-- Local-ize the expected global tables:
+--
+local common = ctgen__common
 
 
 
@@ -129,11 +130,11 @@ local function constants_stuff(env)
         local constant = expr.expression.arg
         local const_value_code_expr
         if env.ctrl.constants.generate_local_defs then
-            -- my policy
+            -- internal, default policy
             const_value_code_expr = env.ctrl.constants.local_defs_container_name
                 .. '::' .. env.ids.model_property_to_varname(constant)
         else
-            -- user specific
+            -- user-supplied policy
             const_value_code_expr = env.ctrl.constants.value_expression(constant)
         end
         local codearg = expr.toCode( const_value_code_expr )
@@ -231,7 +232,7 @@ end
 --- Returns the two functions generating the content of the header and source
 -- files.
 --
-local function generators(ctModelMetadata, homCoordRepresentationMetadata, statementsGenerator, config)
+local function generators(backendSpecifics, ctModelMetadata, homCoordRepresentationMetadata, resolvedMatrices, config)
   local ids = ids(ctModelMetadata, config)
   local transforms = {}
   for tf in python.iter(ctModelMetadata.transformsMetadata) do
@@ -276,7 +277,7 @@ local function generators(ctModelMetadata, homCoordRepresentationMetadata, state
             return header_file_generator(env, transform_class_ctor_arguments, config)
         end,
         sourceFileCode = function()
-            return source_file_generator(env, statementsGenerator, homCoordRepresentationMetadata, transform_class_ctor_arguments)
+            return source_file_generator(env, backendSpecifics, resolvedMatrices, homCoordRepresentationMetadata, transform_class_ctor_arguments)
         end,
         tests = tests_generator(env),
         cmake = function() return cmake_generator(env) end,
