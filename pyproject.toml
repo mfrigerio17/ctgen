@@ -47,4 +47,4 @@ packages = ["ctgen", "ctgen_backends.cpp_iitrbd", "ctgen_backends.octave"]
 
 [tool.setuptools.package-data]
 
-"*" = ["*.lua"]
+"*" = ["*.lua", "*/*.lua"]
