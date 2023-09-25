@@ -21,11 +21,14 @@ logger = logging.getLogger(__package__) # use '__package__' to make this the roo
 
 def getDesiredTransforms(datain):
     dt = []
+    names = {}
     for item in datain:
         rf = primitives.Frame(item['right_frame'])
         lf = primitives.Frame(item['left_frame'])
         dt.append( ct.models.CoordinateTransformPlaceholder(rightFrame=rf, leftFrame=lf))
-    return dt
+        if 'custom_name' in item:
+            names[ (lf,rf) ] = item['custom_name']
+    return dt, names
 
 
 
@@ -123,9 +126,11 @@ def main():
         except OSError as exc :
             logger.warning("Could not read configuration file '{0}': {1}".format(args.cfg, exc.strerror))
 
-
+    # User-desired transforms, and custom names
+    #
+    tfCustomNames = None
     if 'desired-transforms' in configIn :
-        dt = getDesiredTransforms( configIn['desired-transforms'] )
+        dt, tfCustomNames = getDesiredTransforms( configIn['desired-transforms'] )
         ctModel = ct.frommotions.motionsToCoordinateTransforms(posesModel, whichTransforms=dt, retModelName=posesModel.name)
         logger.debug("Found desired-transforms configuration")
     else :
@@ -210,7 +215,7 @@ def main():
     else:
         logger.debug("Adopting the default policy for constant folding")
 
-    ctModelMeta = TransformsModelMetadata( ctModel )
+    ctModelMeta = TransformsModelMetadata( ctModel, tfCustomNames )
 
     # Generate code
     generator = backends[ lang ].get_generator( ctModel, generatorConfig, args )

@@ -17,7 +17,7 @@ dependencies = [
     "sympy",
     "lupa",
     "pyyaml",
-    "kgprim"
+    "kgprim >= 0.1.1"
 ]
 
 urls = { home= "https://github.com/mfrigerio17/ctgen" }
