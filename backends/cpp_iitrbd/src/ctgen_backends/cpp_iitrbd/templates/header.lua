@@ -223,7 +223,7 @@ struct «CLASS»
 @end
 
     «CLASS»() {}
-    «CLASS»(const «ids.types.parameters_status»& «ids.locals.formalParams.parsStatus») {
+    explicit «CLASS»(const «ids.types.parameters_status»& «ids.locals.formalParams.parsStatus») {
         ${parametersAssignments}
     }
 
