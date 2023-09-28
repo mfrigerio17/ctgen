@@ -111,5 +111,5 @@ to it:
 ```
 
 
-[web-iitrbd]: https://bitbucket.org/robcogenteam/cpp-iitrbd
+[web-iitrbd]: https://github.com/mfrigerio17/iit_rbd
 [web-eigen]: https://eigen.tuxfamily.org
