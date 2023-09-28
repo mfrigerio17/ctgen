@@ -157,7 +157,14 @@ local transform_class_definition_template = [[
 struct «CLASS» : public «ids.class_names.tf_base»<«CLASS»>
 {
     «CLASS»(«ctor_args»);
+@if tfMetadata.is_dependent then
     const «CLASS»& «META.members.update»(const «ids.locals.variables_status_t»&);
+@else
+    const «CLASS»& «META.members.update»(const «ids.locals.variables_status_t»&) {
+        return «META.members.update»();
+    }
+    const «CLASS»& «META.members.update»();
+@end
 
 @local cast_t, method
 @cast_t = ids.inherited.members.ct.cast_type.motion(true)
@@ -191,7 +198,7 @@ struct «CLASS» : public «ids.class_names.tf_base»<«CLASS»>
         return this->template as<«cast_t»>();
     }
 
-@if tfMetadata.parametric then
+@if tfMetadata.is_parametric then
 protected:
     const «ids.class_names.internal_parameters»& «META.members.parameters»;
 @end

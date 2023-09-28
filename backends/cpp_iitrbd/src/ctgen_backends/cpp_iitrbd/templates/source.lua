@@ -40,7 +40,7 @@ local transform_class_methods_template = [[
 @end
 «heading»
 «fqn»::«CLASS»(«ctor_args»)
-@if tfMetadata.parametric then
+@if tfMetadata.is_parametric then
     : «META.members.parameters»(params)
 @end
 {
@@ -52,7 +52,11 @@ local transform_class_methods_template = [[
 }
 
 «heading»
+@if tfMetadata.is_dependent then
 const typename «fqn»& «fqn»::«META.members.update»(const «ids.locals.variables_status_t»& «ids.locals.formalParams.varsStatus»)
+@else
+const typename «fqn»& «fqn»::«META.members.update»()
+@end
 {
 @for var, expressions in pairs(variables) do
 @   for k, expr in pairs(expressions) do
