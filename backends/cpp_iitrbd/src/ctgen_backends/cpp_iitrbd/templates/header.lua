@@ -167,36 +167,13 @@ struct «CLASS» : public «ids.class_names.tf_base»<«CLASS»>
 @end
 
 @local cast_t, method
-@cast_t = ids.inherited.members.ct.cast_type.motion(true)
-@method = META.members.view_as.motion(tfMetadata,true)
-    inline «cast_t» «method»() const {
-        return this->template as<«cast_t»>();
-    }
-@cast_t = ids.inherited.members.ct.cast_type.motion(false)
-@method = META.members.view_as.motion(tfMetadata,false)
-    inline «cast_t» «method»() const {
-        return this->template as<«cast_t»>();
-    }
-@cast_t = ids.inherited.members.ct.cast_type.force(true)
-@method = META.members.view_as.force(tfMetadata,true)
-    inline «cast_t» «method»() const {
-        return this->template as<«cast_t»>();
-    }
-@cast_t = ids.inherited.members.ct.cast_type.force(false)
-@method = META.members.view_as.force(tfMetadata,false)
-    inline «cast_t» «method»() const {
-        return this->template as<«cast_t»>();
-    }
-@cast_t = ids.inherited.members.ct.cast_type.homog(true)
-@method = META.members.view_as.homog(tfMetadata,true)
-    inline «cast_t» «method»() const {
-        return this->template as<«cast_t»>();
-    }
-@cast_t = ids.inherited.members.ct.cast_type.homog(false)
-@method = META.members.view_as.homog(tfMetadata,false)
-    inline «cast_t» «method»() const {
-        return this->template as<«cast_t»>();
-    }
+@for _,kind in pairs({"motion", "force", "homog"}) do
+@   for _,polarity in pairs({true, false}) do
+@       cast_t = ids.inherited.members.ct.cast_type[kind](polarity)
+@       method = META.members.view_as[kind](tfMetadata,polarity)
+    «cast_t» «method»() const { return as<«cast_t»>(); }
+@   end
+@end
 
 @if tfMetadata.is_parametric then
 protected:
