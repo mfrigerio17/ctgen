@@ -1,4 +1,4 @@
-import os, sys, struct, logging
+import os, sys, struct, logging, random
 import numpy.random
 
 import motiondsl.motiondsl as motdsl
@@ -11,20 +11,27 @@ import ctgen.common
 
 logger = logging.getLogger(__name__)
 
-def addEntryCSVDataset(q, mx, out_stream):
-    str_q = ','.join(map(str,q)) # comma separated print of the q array
+def addEntryCSVDataset(q, params, mx, out_stream):
+    parts = []
+    if len(q)>0:
+        parts.append( ','.join(map(str,q)) ) # comma separated print of the q array
+    if len(params)>0:
+        parts.append( ','.join(map(str,params)) )
     # The position vector
-    str_r = ','.join(map(str,mx[0:3,3]))
+    parts.append( ','.join(map(str,mx[0:3,3])) )
     # The rotation matrix, row major
-    str_x = ','.join(map(str,mx[0,0:3]))
-    str_y = ','.join(map(str,mx[1,0:3]))
-    str_z = ','.join(map(str,mx[2,0:3]))
+    parts.append( ','.join(map(str,mx[0,0:3])) )
+    parts.append( ','.join(map(str,mx[1,0:3])) )
+    parts.append( ','.join(map(str,mx[2,0:3])) )
 
-    out_stream.write(','.join([str_q, str_r, str_x, str_y, str_z, ]) + '\n')
+    out_stream.write(','.join(parts) + '\n')
 
-def addEntryBinDataset(q, mx, out_stream):
+def addEntryBinDataset(q, params, mx, out_stream):
     for qi in q :
         out_stream.write( struct.pack("f", qi ) )
+
+    for pi in params:
+        out_stream.write( struct.pack("f", pi) )
 
     # The position vector
     out_stream.write( struct.pack("fff", * mx[0:3, 3]) )
@@ -64,9 +71,16 @@ def generateDataset(tr_info, matrix, datasetSize, whichone, path='.'):
         print("Unrecognized format", file=sys.stderr)
         return
     for _ in range(datasetSize) :
-        q = numpy.random.rand( len(tr_info.vars) )
+        q = numpy.random.rand( len(tr_info.variables) )
+        pvalues_list = []
+        pvalues_dict = {}
+        for p in tr_info.parameters: # this is a ordered set
+            value = random.random()
+            pvalues_dict[p] = value
+            pvalues_list.append(value)
+        matrix.setParametersValue(pvalues_dict)
         mx = matrix.eval(*q)
-        addItem(q, mx, outfile)
+        addItem(q, pvalues_list, mx, outfile)
 
     logger.debug("Generated dataset '{0}' with {1} entries, for matrix '{2}' ({3} variable(s))"
                  .format(outfile.name, datasetSize, tr_info.name, len(tr_info.vars)) )
