@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iit/rbd/rbd.h>
 #include <ctgen/cppiitrbd/dataset.h>
 #include <ctgen/cppiitrbd/odistance.h>
 
@@ -8,18 +7,9 @@
 namespace ctgen
 {
 
-template<class Traits>
-int testmain(int argc, char** argv)
+template<class Traits, class Dataset>
+void docompare(Dataset& data)
 {
-    using Mx44 = iit::rbd::PlainMatrix<double,4,4>;
-
-    if(argc < 2) {
-        std::cerr << "Please provide a dataset file." << std::endl;
-        return -1;
-    }
-
-    ctgen::NaiveBinDataset data(argv[1]);
-
     Mx44 given, computed;
     ctgen::AxisAngle Rdiff;
     double err_pos = 0;
@@ -48,7 +38,28 @@ int testmain(int argc, char** argv)
     std::cout << "Average position error   : " << err_pos << std::endl;
     std::cout << "Average orientation error: " << err_ori << std::endl;
     std::cout << "(number of comparisons: " << count << ")" << std::endl;
+}
 
+template<class Traits>
+int testmain(int argc, char** argv)
+{
+    if(argc < 2) {
+        std::cerr << "Please provide a dataset file." << std::endl;
+        return -1;
+    }
+
+    std::string filename{argv[1]};
+    std::string extension{ filename.substr(filename.find_last_of(".") + 1) };
+    if(extension=="bin") {
+        ctgen::NaiveBinDataset data(filename);
+        docompare<Traits, ctgen::NaiveBinDataset>(data);
+    } else if(extension=="csv") {
+        ctgen::TextDataset data(filename);
+        docompare<Traits, ctgen::TextDataset>(data);
+    } else {
+        std::cerr << "Unrecognized file extension " << extension << std::endl;
+        return -1;
+    }
     return 0;
 }
 
