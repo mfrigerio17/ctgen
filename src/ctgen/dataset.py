@@ -68,7 +68,7 @@ def generateDataset(tr_info, matrix, datasetSize, whichone, path='.'):
         outfile = open(filen+'.bin', "bw")
         addItem = addEntryBinDataset
     else :
-        print("Unrecognized format", file=sys.stderr)
+        print("Unrecognized format '{}'".format(whichone), file=sys.stderr)
         return
     for _ in range(datasetSize) :
         q = numpy.random.rand( len(tr_info.variables) )
