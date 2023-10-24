@@ -72,6 +72,11 @@ local config = {
         value_expression = function(var)
             return variables_status_formal_parameter .. '.' .. model_property_to_varname(var)
         end,
+        -- TODO harmonize: the name of the variables-status variable should not
+        -- be bound here, like in this function below:
+        assignable_expression = function(var, state_variable_name)
+            return state_variable_name .. '.' .. model_property_to_varname(var)
+        end,
     },
 
     --- The model parameters
