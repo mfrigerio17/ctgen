@@ -65,6 +65,7 @@ def main():
     argparser.add_argument('-c', '--config', dest='cfg', metavar='FILE', help='YAML configuration for the command line tool; command line switches override entries in this file')
     argparser.add_argument('-cc', '--code-config', dest='code_cfg', metavar='FILE', help='LUA config file overriding the defaults of the selected code generator')
     argparser.add_argument('-s', '--gen-dataset', dest='dataset_size', type=int, metavar='COUNT', help='generate numerical datasets with COUNT entries (no code is generated)')
+    argparser.add_argument('-f', '--dataset-format', dest='dataset_fmt', type=str, metavar='FMT', help='dataset format ("csv" or "bin", respectively text or binary)')
     argparser.add_argument('--fold-constants', dest='cfolding', action='store_const', const=fold_constants_str,  help='force constants folding')
     argparser.add_argument('--reify-floats'  , dest='cfolding', action='store_const', const=reify_floats_str  , help='prevent any constants folding')
     argparser.add_argument('-d', '--debug', action='store_true', help='print model information')
@@ -153,10 +154,11 @@ def main():
 
     # Dataset generation
     if args.dataset_size is not None :
+        fmt = args.dataset_fmt or "bin"
         for tr in ctModel.transforms :
             H  = mxrepr.hCoordinatesSymbolic(tr)
             tr_info = TransformMetadata(tr)
-            dataset.generateDataset(tr_info, H, args.dataset_size, 'bin', odir)
+            dataset.generateDataset(tr_info, H, args.dataset_size, fmt, odir)
         return 0
 
 
