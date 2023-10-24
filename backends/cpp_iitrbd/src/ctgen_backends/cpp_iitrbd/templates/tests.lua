@@ -18,6 +18,7 @@ using Mx44 = iit::rbd::PlainMatrix<double,4,4>;
 @for i, tf in ipairs(transforms) do
 struct Test_«tf.name»
 {
+    static void computeMatrix(::ctgen::TextDataset& ds, Mx44& computed);
     static void computeMatrix(::ctgen::NaiveBinDataset& ds, Mx44& computed);
 };
 
@@ -43,20 +44,22 @@ using Vec = iit::rbd::PlainMatrix<double,N,1>;
 «ids.ns.qualifier»::«ids.types.parameters_status» params;
 @end
 
+namespace {
+
 @for i, tf in ipairs(transforms) do
-    @local vcount = common.pylen(tf.variables)
-void «ids.ns.qualifier»::Test_«tf.name»::computeMatrix(::ctgen::NaiveBinDataset& ds, Mx44& computed)
+template<class Dataset>
+void compute_«tf.name»(Dataset& ds, «ids.ns.qualifier»::Mx44& computed)
 {
-    @if vcount>0 then
+@   if tf.is_dependent then
+@       local vcount = common.pylen(tf.variables)
     Vec<«vcount»> aux_vars;
     ds.readVector(«vcount», aux_vars);
-        @local i = 0
-        @for var in python.iter(tf.variables) do
-    q.«ids.model_property_to_varname(var)» = aux_vars(«i»);
-            @i = i + 1
-            @if i==vcount then break end
-        @end
-    @end
+@       local i = 0
+@       for var in python.iter(tf.variables) do
+    «ctrl.variables.assignable_expression(var, "q")» = aux_vars(«i»);
+@           i = i + 1
+@       end
+@   end
 @   if tf.is_parametric then
 @       local pcount = common.pylen(tf.parameters)
     Vec<«pcount»> aux_pars;
@@ -72,6 +75,19 @@ void «ids.ns.qualifier»::Test_«tf.name»::computeMatrix(::ctgen::NaiveBinData
 }
 
 @end
+
+}
+
+@for i, tf in ipairs(transforms) do
+void «ids.ns.qualifier»::Test_«tf.name»::computeMatrix(::ctgen::NaiveBinDataset& ds, Mx44& computed) {
+    compute_«tf.name»<::ctgen::NaiveBinDataset>(ds, computed);
+}
+void «ids.ns.qualifier»::Test_«tf.name»::computeMatrix(::ctgen::TextDataset& ds, Mx44& computed) {
+    compute_«tf.name»<::ctgen::TextDataset>(ds, computed);
+}
+
+@end
+
 ]]
 
 local individual_main_template =
