@@ -30,10 +30,13 @@ local getMatrixSpecificGenerators = function(lang, matrixMetadata, resolvedMatri
             local r,c = it(inv, ctrl) -- run the iterator once
             ctrl = r
             if r ~= nil then
+                -- we do not generate assignments of zeros, assuming the matrix is initialized
                 local value = coefficient(r, c)
                 if value ~= 0.0 then
-                    -- we do not generate assignments of zeros, assuming the matrix is initialized
-                    return lang.matrixAssignment(matrixVarName,r,c,tostring(value))
+                    -- even though it is constant, it may still be an expression
+                    -- hence we use the dedicated toString function
+                    local value_expr = lang.sympyExpressionToString( value )
+                    return lang.matrixAssignment(matrixVarName,r,c,value_expr)
                 end
             end
             return nil
