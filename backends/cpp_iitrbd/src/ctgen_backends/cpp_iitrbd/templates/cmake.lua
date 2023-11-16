@@ -2,10 +2,10 @@ local common = common
 
 local cmake_template =
 [[
-cmake_minimum_required(VERSION 2.8...3.22)
+cmake_minimum_required(VERSION 3.0.2...3.22)
 project(ctgen-«ctModelMetadata.name»)
 
-set(CMAKE_CXX_FLAGS "-Wall -O2 -std=c++11")
+add_compile_options(-Wall -O2 -std=c++11)
 
 
 set(SOURCES
