@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iit/rbd/rbd.h>
 #include <ctgen/cppiitrbd/dataset.h>
 #include <ctgen/cppiitrbd/odistance.h>
 
@@ -44,8 +43,6 @@ void docompare(Dataset& data)
 template<class Traits>
 int testmain(int argc, char** argv)
 {
-    using Mx44 = iit::rbd::PlainMatrix<double,4,4>;
-
     if(argc < 2) {
         std::cerr << "Please provide a dataset file." << std::endl;
         return -1;
