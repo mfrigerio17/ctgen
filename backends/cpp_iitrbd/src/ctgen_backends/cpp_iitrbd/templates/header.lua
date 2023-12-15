@@ -36,7 +36,11 @@ ${constants_code.containers()}
 struct «ids.types.parameters_status»
 {
 @for param, _ in pairs(parameters) do
+@   if param.defaultValue == nil then
     «scalar_t» «ids.model_property_to_varname(param)»;
+@   else
+    «scalar_t» «ids.model_property_to_varname(param)»{«param.defaultValue»};
+@   end
 @end
 };
 @end
