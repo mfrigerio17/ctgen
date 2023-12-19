@@ -44,6 +44,32 @@ local function python_dictOfSets_to_table( dict )
     return ret
 end
 
+--- Convert one container returned by `kgprim.ct.metadata.symbolicArgumentsOf()`
+-- (from the Python package `kgprim`) into two tables.
+-- The given container is expected to be a dictionary in which every value is
+-- itself a container.
+--
+-- The first returned table is the array of all the keys of the given
+-- dictionary.
+-- The second table is keyed with such keys, and every value is the array
+-- with the same items of the corresponding value of the given dictionary.
+--
+-- This conversion is done to preserve the iteration order of the dictionary
+-- keys, AND of the items inside the dictionary values.
+local function python_unique_expressions_dict_to_tables( dict )
+    local symbols = {}
+    local expressions_map = {}
+    for symbol in python.iter( dict ) do
+        table.insert(symbols, symbol) -- save the keys, ordered
+        local expressions = {}
+        for expression in python.iter( dict[symbol] ) do
+            table.insert(expressions, expression)
+        end
+        expressions_map[symbol] = expressions
+    end
+    return symbols, expressions_map
+end
+
 --- A custom iterator over a python iterable
 local function myiter( python_iterable )
     local it, inv, ctrl = python.iter( python_iterable )
@@ -88,6 +114,7 @@ common = {
     decorated_names_iterator = decorated_names_iterator,
     lineDecorator = tplmodule.lineDecorator,
     python_dictOfSets_to_table = python_dictOfSets_to_table,
+    python_unique_expressions_dict_to_tables = python_unique_expressions_dict_to_tables,
     myiter = myiter,
     table_override = table_override,
     pylen = pylen,
