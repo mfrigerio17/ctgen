@@ -35,7 +35,7 @@ ${constants_code.containers()}
 @if ctrl.parameters.generate_local_status_type then
 struct «ids.types.parameters_status»
 {
-@for param, _ in pairs(parameters) do
+@for i, param in ipairs(parameters) do
 @   if param.defaultValue == nil then
     «scalar_t» «ids.model_property_to_varname(param)»;
 @   else
@@ -192,8 +192,8 @@ local parameters_class_definition_template = [[
 @local CLASS = ids.class_names.internal_parameters
 struct «CLASS»
 {
-@for param, expressions in pairs(parameters) do
-@   for i, expr in pairs(expressions) do
+@for i, param in ipairs(parameters) do
+@   for i, expr in ipairs( param_expressions[param] ) do
 @       if expr.isRotation() then
     «scalar_t» «ids.locals.sinVarName(expr)»;
     «scalar_t» «ids.locals.cosVarName(expr)»;
@@ -216,8 +216,8 @@ struct «CLASS»
 ]]
 
 local parameters_assignments_template = [[
-@for param, expressions in pairs(parameters) do
-@   for i, expr in pairs(expressions) do
+@for i, param in ipairs(parameters) do
+@   for i, expr in ipairs( param_expressions[param] ) do
 @       local codearg = expr.toCode( ctrl.parameters.value_expression(param) )
 @       if expr.isRotation() then
 «ids.locals.sinVarName(expr)» = «ids.locals.scalar_traits»::sin( «codearg» );

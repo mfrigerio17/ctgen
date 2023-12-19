@@ -147,8 +147,8 @@ local function constants_stuff(env)
 
     local tpl_foreach_expr = [[
 @local container = ids.locals.constants_container
-@for constant, expressions in pairs(constants) do
-@   for i, expr in pairs(expressions) do
+@for i, constant in ipairs(constants) do
+@   for i, expr in ipairs(const_expressions[constant]) do
 @       local values = values(expr)
 @       if expr.isRotation() then
 «statement(ids.locals.sinVarName(expr), values.sine, container)»
@@ -170,7 +170,7 @@ local function constants_stuff(env)
     local tpl_containers = [[
 @if ctrl.constants.generate_local_defs then
 struct «ctrl.constants.local_defs_container_name» {
-@ for constant, _ in pairs(constants) do
+@ for i, constant in ipairs(constants) do
     «declare(ids.model_property_to_varname(constant), constant.value)»
 @ end
 };
@@ -184,7 +184,7 @@ struct «ids.locals.constants_container» {
     local tpl_definitions = [[
 @local container = ctrl.constants.local_defs_container_name
 @if ctrl.constants.generate_local_defs then
-    @ for constant, _ in pairs(constants) do
+    @ for i, constant in ipairs(constants) do
 «define(ids.model_property_to_varname(constant), constant.value, container)»
     @ end
 @end
@@ -238,6 +238,10 @@ local function generators(backendSpecifics, ctModelMetadata, homCoordRepresentat
   for tf in python.iter(ctModelMetadata.transformsMetadata) do
     table.insert(transforms, tf)
   end
+
+    parameters, param_expressions = common.python_unique_expressions_dict_to_tables(ctModelMetadata.parameters)
+    constants, const_expressions  = common.python_unique_expressions_dict_to_tables(ctModelMetadata.constants)
+
   local env = {
     python          = python,      -- global object from Lupa. Not clear what it contains besides 'iter()'
     common          = common,
@@ -252,8 +256,10 @@ local function generators(backendSpecifics, ctModelMetadata, homCoordRepresentat
         scalar_traits = config.scalar_traits,
         container_class = config.container_class,
     },
-    parameters = common.python_dictOfSets_to_table(ctModelMetadata.parameters),
-    constants  = common.python_dictOfSets_to_table(ctModelMetadata.constants),
+    parameters = parameters,
+    param_expressions = param_expressions,
+    constants = constants,
+    const_expressions = const_expressions,
     files = config.files,
     print = print,
     require = require,
