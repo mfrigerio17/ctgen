@@ -1,9 +1,10 @@
-local common    = common
+-- Local-ize the expected global tables:
+--
+local common = ctgen__common
+local assignments = ctgen__matrix_coeff_assignments
 
 
-
-local function allGenerators(ctModelMetadata, statementsGenerator, config)
-
+local function allGenerators(backendSpecifics, ctModelMetadata, resolvedMatrices, config)
     local transforms = {}
     for tf in python.iter(ctModelMetadata.transformsMetadata) do
       table.insert(transforms, tf)
@@ -27,25 +28,6 @@ local function allGenerators(ctModelMetadata, statementsGenerator, config)
         python = python,
         common = common,
     }
-    local mxmember = env.ids.this .. '.' .. env.ids.matrixMember
-
-    local init_statements = function(statements_generator)
-        return function()
-            return common.lineDecorator(
-                function()
-                    return common.myiter(statements_generator.constantCoefficientsAssignments(mxmember))
-                end, '', ';')
-        end
-    end
-    local update_statements = function(statements_generator)
-        return function()
-            return common.lineDecorator(
-                function()
-                    return common.myiter(statements_generator.variableCoefficientsAssignments(mxmember))
-                end, '', ';')
-        end
-    end
-
 
 local function modelConstants()
     local tpltext = [[
@@ -95,7 +77,10 @@ endproperties
 methods
 function «ids.this» = «TF»()
     global «modelConstantsGlobal»;
-    ${initStatements}
+@local access = ids.this .. '.' .. ids.matrixMember
+@for statement in statementsGenerator.constantCoefficientsAssignments(access) do
+    «statement»;
+@end
 
 @if tf.parametric then
     % Initializes the parameters
@@ -124,7 +109,9 @@ function update(«ids.this», «ids.varStateArgName»)
 @       end
 @   end
 @end
-    ${assignments}
+@for statement in statementsGenerator.variableCoefficientsAssignments(access) do
+    «statement»;
+@end
 endfunction
 
 
@@ -173,7 +160,9 @@ endclassdef
     for i,par in common.myiter(ctMetadata.pars) do
         table.insert(parnames, par.name)
     end
-    local statementsGen = statementsGenerator.getMatrixSpecificGenerators(matrixReprMeta)
+    local statementsGen = assignments.getMatrixSpecificGenerators(
+                backendSpecifics.languageSpecifics, matrixReprMeta,
+                resolvedMatrices[ctMetadata.name])
 
     env.tf = ctMetadata
     env.parameters = common.python_dictOfSets_to_table( ctMetadata.pars )
@@ -182,8 +171,8 @@ endclassdef
     env.matrixReprMeta = matrixReprMeta
     env.parnames = parnames
     env.varnames = varnames
-    env.initStatements= init_statements(statementsGen)
-    env.assignments   = update_statements(statementsGen)
+    env.statementsGenerator = statementsGen
+
     return common.tpleval(tpltext, env)
 end
 

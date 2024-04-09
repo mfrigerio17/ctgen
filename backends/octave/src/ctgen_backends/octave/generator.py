@@ -1,88 +1,31 @@
-import logging, os
-import lupa
-import ctgen.common as ctgen_common
+import logging, os, pathlib
+
+import ctgen_backends.octave as thisBackend
+import ctgen.common
 from kgprim.ct.repr.mxrepr import MatrixRepresentation
 
 logger = logging.getLogger(__name__)
 
-lua = lupa.LuaRuntime(unpack_returned_tuples=True)
-
-luaCodeSrc = open( os.path.join(os.path.dirname(ctgen_common.__file__), "common.lua"), "r")
-lua.execute(luaCodeSrc.read())
-luaCodeSrc.close()
-
-
-
-
-class LangSpecifics:
-    def __init__(self, textgen_cfg):
-        self.lua_cfg = textgen_cfg
-
-    def matrixAssignment(self, subscriptableVariable,r,c,value):
-        return "{var}({row},{col}) = {value}".format(var=subscriptableVariable, row=r+1, col=c+1, value=value)
-
-
-class VariableAccess:
-    def __init__(self, textgen_cfg):
-        self.cfg = textgen_cfg
-    def valueExpression(self, expr):
-        return expr.toCode( self.cfg.variables.value_expression(expr.expression.arg) )
-    def sineValueExpression(self, expr):
-        return self.cfg.internal.cached_sinvalue_identifier(expr)
-    def cosineValueExpression(self, expr):
-        return self.cfg.internal.cached_cosvalue_identifier(expr)
-
-
-
-class ParameterAccess:
-    def __init__(self, textgen_cfg):
-        self.cfg = textgen_cfg
-        self.valuExprTpl = (textgen_cfg.this_obj_ref +
-                '.' + textgen_cfg.parameters.member_name +
-                '.{field}')
-
-    def valueExpression(self, expr):
-        return self.valuExprTpl.format(field=self.cfg.internal.cached_value_identifier(expr))
-    def sineValueExpression(self, expr):
-        return self.valuExprTpl.format(field=self.cfg.internal.cached_sinvalue_identifier(expr))
-    def cosineValueExpression(self, expr):
-        return self.valuExprTpl.format(field=self.cfg.internal.cached_cosvalue_identifier(expr))
-
-class ConstantAccess:
-    def __init__(self, cc_name, textgen_cfg):
-        self.cfg = textgen_cfg
-        self.cc_name = cc_name
-
-    def valueExpression(self, expr):
-        return self.cc_name + '.' + self.cfg.internal.cached_value_identifier(expr)
-    def sineValueExpression(self, expr):
-        return self.cc_name + '.' + self.cfg.internal.cached_sinvalue_identifier(expr)
-    def cosineValueExpression(self, expr):
-        return self.cc_name + '.' + self.cfg.internal.cached_cosvalue_identifier(expr)
-
 
 class Generator:
     def __init__(self, configurator):
-        basedir = os.path.dirname(__file__)
-        luaCodeSrc = open( os.path.join(basedir, "tests_tpl.lua"), "r")
-        lua.execute(luaCodeSrc.read()) # loads a global
-        luaCodeSrc.close()
-        luaCodeSrc = open( os.path.join(basedir, "generator.lua"), "r")
-        self.luaGeneratorsF = lua.execute(luaCodeSrc.read())
-        luaCodeSrc.close()
         self.config  = configurator
+        self.lua_codegen_cfg = configurator.getTextGeneratorsConfiguration()
 
-        textgen_cfg = configurator.getTextGeneratorsConfiguration()
-        constants_container_name = textgen_cfg.constants.container_name(configurator.ctModel)
+        pathToHere   = pathlib.Path(__file__).parent
+        pathToTempls = pathToHere
 
-        self.variableAccess  = VariableAccess(textgen_cfg)
-        self.parameterAccess = ParameterAccess(textgen_cfg)
-        self.constantAccess  = ConstantAccess(constants_container_name, textgen_cfg)
-        self.langSpecifics   = LangSpecifics(textgen_cfg)
-        self.textgen_cfg = textgen_cfg
+        self._luaExec(pathToTempls.joinpath("tests_tpl.lua")) # loads a global
+        self.luaGeneratorsF = self._luaExec(pathToHere.joinpath("generator.lua"))
 
-        self.statementsGenerator = ctgen_common.StatementsGenerator(self)
+        backend_lua = self._luaExec(pathToHere.joinpath("backend.lua"))
+        self.backendSpecifics = backend_lua.getSpecifics(self.lua_codegen_cfg, configurator.ctModel)
 
+    def _luaExec(self, sourcefile) :
+        luaCodeSrc = open( sourcefile, "r")
+        luaret = thisBackend.luaRuntime.execute(luaCodeSrc.read())
+        luaCodeSrc.close()
+        return luaret
 
     def _generate_code(self, ctModelMetadata, matricesMetadata):
         '''
@@ -97,11 +40,23 @@ class Generator:
         '''
         if not self._consistentArgs(ctModelMetadata) :
             return None
-        self.luaGen = self.luaGeneratorsF(ctModelMetadata, self.statementsGenerator, self.textgen_cfg)
+
+        # Resolve the symbols of every matrix, put them in a map keyed in the
+        # same way as the matrices-metadata argument
+        resolver = ctgen.common.SymbolicCoefficientsResolver(self.backendSpecifics)
 
         ret = {}
         for repr in matricesMetadata.keys() :
             mxsMeta = matricesMetadata[repr]
+
+            resolvedMatrices = {}
+            for name, meta in mxsMeta.items():
+                res = resolver.resolveSymbols(meta)
+                resolvedMatrices[name] = res
+
+            self.luaGen = self.luaGeneratorsF(self.backendSpecifics,
+                ctModelMetadata, resolvedMatrices, self.lua_codegen_cfg)
+
             code = {}
             for mxName in mxsMeta.keys() :
                 mxMeta = mxsMeta[mxName]
@@ -156,7 +111,7 @@ class Generator:
                 fwrite(ok, filename, codeOrError)
 
         ok, codeOrError = constants[:]
-        filename = self.textgen_cfg.constants.container_name(ctModelMetadata) + "_init.m"
+        filename = self.lua_codegen_cfg.constants.container_name(ctModelMetadata) + "_init.m"
         fwrite(ok, filename, codeOrError)
 
         ok, codeOrError = tests[:]
