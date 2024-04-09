@@ -1,35 +1,26 @@
-import os
+import pathlib
 from kgprim.ct.repr.mxrepr import MatrixRepresentation
+import ctgen_backends.octave as thisBackend
 import ctgen_backends.octave.generator as generator
 
 from ctgen.pyutils import open_utf8_reading
 
-lua_config_file = os.path.join( os.path.dirname(__file__), "config.lua")
-luaCodeSrc = open_utf8_reading( lua_config_file)
-defaultTextGeneratorsConfiguration = generator.lua.execute(luaCodeSrc.read())
-luaCodeSrc.close()
-
-strbit = {
-    MatrixRepresentation.homogeneous : 'xh',
-    MatrixRepresentation.spatial_motion : 'xm',
-    MatrixRepresentation.spatial_force : 'xf',
-    MatrixRepresentation.pure_rotation : 'rot'
-}
-
-
 class Configurator:
     def __init__(self, ctModel, outer_config, cmdline_overrides):
         self.ctModel = ctModel
-        self.textgen_cfg = defaultTextGeneratorsConfiguration
+
+        with open_utf8_reading(pathlib.Path(__file__).parent.joinpath("config.lua")) as cfgFile:
+            self.textgen_cfg = thisBackend.luaRuntime.execute(cfgFile.read())
+
         self.outdir = outer_config['outDir'] or '_gen/octave'
 
         user_config = outer_config['textConfig']
         if user_config is not None :
             try :
                 istream  = open_utf8_reading(user_config)
-                user_config = generator.lua.execute(istream.read())
+                user_config = thisBackend.luaRuntime.execute(istream.read())
                 istream.close()
-                f = generator.lua.execute('return common.table_override')
+                f = thisBackend.luaRuntime.execute('return common.table_override')
                 f(self.textgen_cfg, user_config)
             except OSError as exc :
                 generator.logger.warning("Could not read configuration file '{0}': {1}".format(user_config, exc.strerror))
@@ -42,7 +33,7 @@ class Configurator:
         return self.textgen_cfg
 
     def getClassName(self, matrixMetadata):
-        # we just relay what the Lua config says
+        # we just rely on what the Lua config says
         return self.textgen_cfg.mx_class_name(matrixMetadata)
 
 
