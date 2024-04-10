@@ -61,7 +61,7 @@ function testMatrix(obj, mx, stateVectorSize)
 
         aa = orientationDistance(R, mx.mx(1:3,1:3));
         err_o = err_o + aa.angle;
-        err_p = norm( tr-mx.mx(1:3,4) );
+        err_p = err_p + norm( tr-mx.mx(1:3,4) );
         count = count + 1;
     end
     display(['Average orientation error: ' num2str(err_o/count)]);
