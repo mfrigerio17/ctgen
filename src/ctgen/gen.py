@@ -210,9 +210,7 @@ def main():
         ctModel = kgprim.ct.models.CTransformsModel(ctModel.name, transforms)
     elif cfold == reify_floats_str :
         logger.debug("Will create named constants for the float-literals in the model")
-        transforms = []
-        for tf in ctModel.transforms :
-            transforms.append( ctgen.common.floatLiteralsAsConstants(tf) )
+        transforms = ctgen.common.floatLiteralsAsConstants(ctModel.transforms)
         ctModel = kgprim.ct.models.CTransformsModel(ctModel.name, transforms)
     else:
         logger.debug("Adopting the default policy for constant folding")

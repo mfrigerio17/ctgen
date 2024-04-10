@@ -63,31 +63,33 @@ def foldConstants(transform):
         return transform
 
 
-def floatLiteralsAsConstants(transform):
+def floatLiteralsAsConstants(transforms_list):
     '''
-    Replace the floating point coefficients of the given transform with
-    symbolic constants.
+    Replace the floating point coefficients of the given transforms with
+    symbolic constants. The constants are given a default name with an
+    increasing numerical postfix (e.g. 'c0', 'c1', 'c2', etc.)
     '''
-    new_primitives = []
-    modified = False
     count = 0
-    for pct in transform.primitives :
-        amount = pct.amount
-        if isinstance(amount, numbers.Real):
-            ms = copy.copy(pct.motion)
-            constant = numeric_argument.Constant('c{0}'.format(count), amount)
-            ms.amount= numeric_argument.Expression(argument=constant)
-            new_primitives.append( kgprim.ct.models.PrimitiveCTransform(ms, pct.polarity) )
-            modified = True
-            count = count + 1
-        else :
-            new_primitives.append(pct)
-    if modified :
-        return kgprim.ct.models.CoordinateTransform(
-            transform.leftFrame, transform.rightFrame, new_primitives)
-    else :
-        # nothing was changed, return the original object
-        return transform
+    new_list = []
+    for transform in transforms_list:
+        new_primitives = []
+        modified = False
+        for pct in transform.primitives :
+            amount = pct.amount
+            if isinstance(amount, numbers.Real):
+                ms = copy.copy(pct.motion)
+                constant = numeric_argument.Constant('c{0}'.format(count), amount)
+                ms.amount= numeric_argument.Expression(argument=constant)
+                new_primitives.append( kgprim.ct.models.PrimitiveCTransform(ms, pct.polarity) )
+                modified = True
+                count = count + 1
+            else :
+                new_primitives.append(pct)
+        if modified :
+            transform = kgprim.ct.models.CoordinateTransform(
+                transform.leftFrame, transform.rightFrame, new_primitives)
+        new_list.append( transform ) # a new one, or the same
+    return new_list
 
 
 class StatementsGenerator:
