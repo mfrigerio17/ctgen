@@ -35,8 +35,12 @@ ${constants_code.containers()}
 @if ctrl.parameters.generate_local_status_type then
 struct «ids.types.parameters_status»
 {
-@for param, _ in pairs(parameters) do
+@for i, param in ipairs(parameters) do
+@   if param.defaultValue == nil then
     «scalar_t» «ids.model_property_to_varname(param)»;
+@   else
+    «scalar_t» «ids.model_property_to_varname(param)»{«param.defaultValue»};
+@   end
 @end
 };
 @end
@@ -157,41 +161,25 @@ local transform_class_definition_template = [[
 struct «CLASS» : public «ids.class_names.tf_base»<«CLASS»>
 {
     «CLASS»(«ctor_args»);
+@if tfMetadata.is_dependent then
     const «CLASS»& «META.members.update»(const «ids.locals.variables_status_t»&);
+@else
+    const «CLASS»& «META.members.update»(const «ids.locals.variables_status_t»&) {
+        return «META.members.update»();
+    }
+    const «CLASS»& «META.members.update»();
+@end
 
 @local cast_t, method
-@cast_t = ids.inherited.members.ct.cast_type.motion(true)
-@method = META.members.view_as.motion(tfMetadata,true)
-    inline «cast_t» «method»() const {
-        return this->template as<«cast_t»>();
-    }
-@cast_t = ids.inherited.members.ct.cast_type.motion(false)
-@method = META.members.view_as.motion(tfMetadata,false)
-    inline «cast_t» «method»() const {
-        return this->template as<«cast_t»>();
-    }
-@cast_t = ids.inherited.members.ct.cast_type.force(true)
-@method = META.members.view_as.force(tfMetadata,true)
-    inline «cast_t» «method»() const {
-        return this->template as<«cast_t»>();
-    }
-@cast_t = ids.inherited.members.ct.cast_type.force(false)
-@method = META.members.view_as.force(tfMetadata,false)
-    inline «cast_t» «method»() const {
-        return this->template as<«cast_t»>();
-    }
-@cast_t = ids.inherited.members.ct.cast_type.homog(true)
-@method = META.members.view_as.homog(tfMetadata,true)
-    inline «cast_t» «method»() const {
-        return this->template as<«cast_t»>();
-    }
-@cast_t = ids.inherited.members.ct.cast_type.homog(false)
-@method = META.members.view_as.homog(tfMetadata,false)
-    inline «cast_t» «method»() const {
-        return this->template as<«cast_t»>();
-    }
+@for _,kind in pairs({"motion", "force", "homog"}) do
+@   for _,polarity in pairs({true, false}) do
+@       cast_t = ids.inherited.members.ct.cast_type[kind](polarity)
+@       method = META.members.view_as[kind](tfMetadata,polarity)
+    «cast_t» «method»() const { return as<«cast_t»>(); }
+@   end
+@end
 
-@if tfMetadata.parametric then
+@if tfMetadata.is_parametric then
 protected:
     const «ids.class_names.internal_parameters»& «META.members.parameters»;
 @end
@@ -204,8 +192,8 @@ local parameters_class_definition_template = [[
 @local CLASS = ids.class_names.internal_parameters
 struct «CLASS»
 {
-@for param, expressions in pairs(parameters) do
-@   for i, expr in pairs(expressions) do
+@for i, param in ipairs(parameters) do
+@   for i, expr in ipairs( param_expressions[param] ) do
 @       if expr.isRotation() then
     «scalar_t» «ids.locals.sinVarName(expr)»;
     «scalar_t» «ids.locals.cosVarName(expr)»;
@@ -216,7 +204,7 @@ struct «CLASS»
 @end
 
     «CLASS»() {}
-    «CLASS»(const «ids.types.parameters_status»& «ids.locals.formalParams.parsStatus») {
+    explicit «CLASS»(const «ids.types.parameters_status»& «ids.locals.formalParams.parsStatus») {
         ${parametersAssignments}
     }
 
@@ -228,8 +216,8 @@ struct «CLASS»
 ]]
 
 local parameters_assignments_template = [[
-@for param, expressions in pairs(parameters) do
-@   for i, expr in pairs(expressions) do
+@for i, param in ipairs(parameters) do
+@   for i, expr in ipairs( param_expressions[param] ) do
 @       local codearg = expr.toCode( ctrl.parameters.value_expression(param) )
 @       if expr.isRotation() then
 «ids.locals.sinVarName(expr)» = «ids.locals.scalar_traits»::sin( «codearg» );

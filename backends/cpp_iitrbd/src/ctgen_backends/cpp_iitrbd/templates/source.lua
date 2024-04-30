@@ -1,4 +1,7 @@
-local common = common
+-- Local-ize the expected global tables:
+--
+local common = ctgen__common
+local assignments = ctgen__matrix_coeff_assignments
 
 local source_template = [[
 @if not template_all then
@@ -37,19 +40,23 @@ local transform_class_methods_template = [[
 @end
 «heading»
 «fqn»::«CLASS»(«ctor_args»)
-@if tfMetadata.parametric then
+@if tfMetadata.is_parametric then
     : «META.members.parameters»(params)
 @end
 {
 @local ctdata = ids.inherited.members.ct
 @local access = 'this->'..ctdata.name
-@for statement in python.iter(statementsGenerator.constantCoefficientsAssignments(access)) do
+@for statement in statementsGenerator.constantCoefficientsAssignments(access) do
     «statement»
 @end
 }
 
 «heading»
+@if tfMetadata.is_dependent then
 const typename «fqn»& «fqn»::«META.members.update»(const «ids.locals.variables_status_t»& «ids.locals.formalParams.varsStatus»)
+@else
+const typename «fqn»& «fqn»::«META.members.update»()
+@end
 {
 @for var, expressions in pairs(variables) do
 @   for k, expr in pairs(expressions) do
@@ -61,7 +68,7 @@ const typename «fqn»& «fqn»::«META.members.update»(const «ids.locals.vari
 @   end
 @end
 
-@for statement in python.iter(statementsGenerator.variableCoefficientsAssignments(access) ) do
+@for statement in statementsGenerator.variableCoefficientsAssignments(access) do
     «statement»
 @end
     return *this;
@@ -117,14 +124,17 @@ void «qualifier»::«class»::«meta.members.update»(const «ids.locals.variab
 end
 
 
-local function source_file_code(env, statements_generator, matrices_metadata, transform_class_ctor_arguments)
+local function source_file_code(env, backend_specifics, resolved_matrices, matrices_metadata, transform_class_ctor_arguments)
 
     -- Generator of the implementation of the methods of a transform class
     -- For nested evaluation within a template
     local function transform_class_methods(tfMetadata)
         env.ctor_args  = transform_class_ctor_arguments(tfMetadata)
         env.tfMetadata = tfMetadata
-        env.statementsGenerator = statements_generator.getMatrixSpecificGenerators(matrices_metadata[tfMetadata.name])
+        env.statementsGenerator = assignments.getMatrixSpecificGenerators(
+                backend_specifics.languageSpecifics,
+                matrices_metadata[tfMetadata.name],
+                resolved_matrices[tfMetadata.name])
         env.variables = common.python_dictOfSets_to_table(tfMetadata.vars)
         return common.tpleval_failonerror(transform_class_methods_template, env, {returnTable=true})
     end
@@ -134,7 +144,8 @@ local function source_file_code(env, statements_generator, matrices_metadata, tr
     env.container_class_methods = code
     env.transform_class_methods = transform_class_methods
 
-    return common.tpleval(source_template, env)
+    local ok,text = common.tpleval(source_template, env)
+    return ok,text
   end
 
 

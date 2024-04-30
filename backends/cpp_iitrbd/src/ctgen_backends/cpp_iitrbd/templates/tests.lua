@@ -18,6 +18,7 @@ using Mx44 = iit::rbd::PlainMatrix<double,4,4>;
 @for i, tf in ipairs(transforms) do
 struct Test_«tf.name»
 {
+    static void computeMatrix(::ctgen::TextDataset& ds, Mx44& computed);
     static void computeMatrix(::ctgen::NaiveBinDataset& ds, Mx44& computed);
 };
 
@@ -36,29 +37,57 @@ using Vec = iit::rbd::PlainMatrix<double,N,1>;
 @if template_all then
 «ids.ns.qualifier»::Transforms<double> transforms;
 «ids.ns.qualifier»::VarsState<double> q;
+«ids.ns.qualifier»::«ids.types.parameters_status»<double> params;
 @else
 «ids.ns.qualifier»::Transforms transforms;
 «ids.ns.qualifier»::VarsState q;
+«ids.ns.qualifier»::«ids.types.parameters_status» params;
 @end
 
+namespace {
+
 @for i, tf in ipairs(transforms) do
-    @local vcount = common.pylen(tf.vars)
-void «ids.ns.qualifier»::Test_«tf.name»::computeMatrix(::ctgen::NaiveBinDataset& ds, Mx44& computed)
+template<class Dataset>
+void compute_«tf.name»(Dataset& ds, «ids.ns.qualifier»::Mx44& computed)
 {
-    @if vcount>0 then
+@   if tf.is_dependent then
+@       local vcount = common.pylen(tf.variables)
     Vec<«vcount»> aux_vars;
     ds.readVector(«vcount», aux_vars);
-        @local i = 0
-        @for var in python.iter(tf.vars) do
-    q.«ids.model_property_to_varname(var)» = aux_vars(«i»);
-            @i = i + 1
-            @if i==vcount then break end
-        @end
-    @end
+@       local i = 0
+@       for var in python.iter(tf.variables) do
+    «ctrl.variables.assignable_expression(var, "q")» = aux_vars(«i»);
+@           i = i + 1
+@       end
+@   end
+@   if tf.is_parametric then
+@       local pcount = common.pylen(tf.parameters)
+    Vec<«pcount»> aux_pars;
+    ds.readVector(«pcount», aux_pars);
+@       local i = 0
+@       for p in python.iter(tf.parameters) do
+    params.«ids.model_property_to_varname(p)» = aux_pars[«i»];
+@           i = i + 1
+@       end
+    transforms.updateParams(params);
+@   end
     computed = transforms.«ids.container_class.members.transform(tf)»(q).«ids.transform_class.members.view_as.homog(tf,true)»().matrix();
 }
 
 @end
+
+}
+
+@for i, tf in ipairs(transforms) do
+void «ids.ns.qualifier»::Test_«tf.name»::computeMatrix(::ctgen::NaiveBinDataset& ds, Mx44& computed) {
+    compute_«tf.name»<::ctgen::NaiveBinDataset>(ds, computed);
+}
+void «ids.ns.qualifier»::Test_«tf.name»::computeMatrix(::ctgen::TextDataset& ds, Mx44& computed) {
+    compute_«tf.name»<::ctgen::TextDataset>(ds, computed);
+}
+
+@end
+
 ]]
 
 local individual_main_template =
