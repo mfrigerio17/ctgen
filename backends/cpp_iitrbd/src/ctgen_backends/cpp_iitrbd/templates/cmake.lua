@@ -22,7 +22,7 @@ add_library(objs OBJECT ${SOURCES})
 
 @for i, tf in ipairs(transforms) do
 add_executable(t_«tf.name»
-    $<TARGET_OBJECTS:objs>
+    \$<TARGET_OBJECTS:objs>
     «files.test.subdir»/«files.test.per_tf_source(tf)»
 )
 target_link_libraries(t_«tf.name» ctgen_cppiitrbd_test)
