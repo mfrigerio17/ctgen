@@ -5,7 +5,11 @@ local assignments = ctgen__matrix_coeff_assignments
 
 local source_template = [[
 @if not template_all then
+@ if ids.include_path==nil or ids.include_path=="" then
+#include <«files.header»>
+@ else
 #include <«ids.include_path»/«files.header»>
+@ end
 
 using «ids.ns.qualifier»::«ids.locals.scalar_t»;
 @end
