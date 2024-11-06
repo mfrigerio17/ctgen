@@ -17,7 +17,12 @@ local common = ctgen__common
 
 --- Factory for the functions that generate the assignments of the matrix
 --- coefficients.
---
+--  Arguments:
+--  - lang
+--  - `matrixMetadata` is expected to have fields `constantCoefficients`
+--     and `variableCoefficients`, both python iterables in which each item is
+--     a two-value tuple with the index of a matrix element, in the form
+--     (row,column).
 --
 local getMatrixSpecificGenerators = function(lang, matrixMetadata, resolvedMatrix)
     -- resolvedMatrix must have all reference to symbols resolved
@@ -27,19 +32,20 @@ local getMatrixSpecificGenerators = function(lang, matrixMetadata, resolvedMatri
     ret.constantCoefficientsAssignments = function(matrixVarName)
         local it, inv, ctrl = python.iter(matrixMetadata.constantCoefficients)
         return function()
-            local r,c = it(inv, ctrl) -- run the iterator once
-            ctrl = r
-            if r ~= nil then
-                -- we do not generate assignments of zeros, assuming the matrix is initialized
-                local value = coefficient(r, c)
-                if value ~= 0.0 then
+            local value_expression = ""
+            local r,c
+            repeat
+                r,c = it(inv, ctrl) -- run the iterator once, gets row and column
+                if r ~= nil then
                     -- even though it is constant, it may still be an expression
                     -- hence we use the dedicated toString function
-                    local value_expr = lang.sympyExpressionToString( value )
-                    return lang.matrixAssignment(matrixVarName,r,c,value_expr)
+                    value_expression = lang.sympyExpressionToString( coefficient(r, c) )
+                else
+                    return nil -- iteration is over
                 end
-            end
-            return nil
+                -- we do not generate assignments of zeros, assuming the matrix is initialized
+            until (value_expression ~= "0.0" and value_expression ~= "0")
+            return lang.matrixAssignment(matrixVarName,r,c,value_expression)
         end, inv, ctrl
     end
 
