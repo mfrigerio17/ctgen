@@ -2,8 +2,10 @@ import os
 from kgprim.ct.repr.mxrepr import MatrixRepresentation
 import ctgen_backends.octave.generator as generator
 
+from ctgen.pyutils import open_utf8_reading
+
 lua_config_file = os.path.join( os.path.dirname(__file__), "config.lua")
-luaCodeSrc = open( lua_config_file, "r")
+luaCodeSrc = open_utf8_reading( lua_config_file)
 defaultTextGeneratorsConfiguration = generator.lua.execute(luaCodeSrc.read())
 luaCodeSrc.close()
 
@@ -24,7 +26,7 @@ class Configurator:
         user_config = outer_config['textConfig']
         if user_config is not None :
             try :
-                istream  = open(user_config, 'r')
+                istream  = open_utf8_reading(user_config)
                 user_config = generator.lua.execute(istream.read())
                 istream.close()
                 f = generator.lua.execute('return common.table_override')

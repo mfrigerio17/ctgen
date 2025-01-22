@@ -1,13 +1,14 @@
 import logging, os
 import lupa
 import ctgen.common as ctgen_common
+from ctgen.pyutils import open_utf8_reading
 from kgprim.ct.repr.mxrepr import MatrixRepresentation
 
 logger = logging.getLogger(__name__)
 
 lua = lupa.LuaRuntime(unpack_returned_tuples=True)
 
-luaCodeSrc = open( os.path.join(os.path.dirname(ctgen_common.__file__), "common.lua"), "r")
+luaCodeSrc = open_utf8_reading( os.path.join(os.path.dirname(ctgen_common.__file__), "common.lua"))
 lua.execute(luaCodeSrc.read())
 luaCodeSrc.close()
 
@@ -64,10 +65,10 @@ class ConstantAccess:
 class Generator:
     def __init__(self, configurator):
         basedir = os.path.dirname(__file__)
-        luaCodeSrc = open( os.path.join(basedir, "tests_tpl.lua"), "r")
+        luaCodeSrc = open_utf8_reading( os.path.join(basedir, "tests_tpl.lua") )
         lua.execute(luaCodeSrc.read()) # loads a global
         luaCodeSrc.close()
-        luaCodeSrc = open( os.path.join(basedir, "generator.lua"), "r")
+        luaCodeSrc = open_utf8_reading( os.path.join(basedir, "generator.lua") )
         self.luaGeneratorsF = lua.execute(luaCodeSrc.read())
         luaCodeSrc.close()
         self.config  = configurator

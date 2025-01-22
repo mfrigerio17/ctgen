@@ -4,6 +4,7 @@ from kgprim.ct.repr.mxrepr import MatrixRepresentation
 
 import ctgen_backends.cpp_iitrbd as thisBackend
 import ctgen.common
+from ctgen.pyutils import open_utf8_reading
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ class Generator:
         self.backendSpecifics = backend_lua.getSpecifics(self.lua_codegen_cfg)
 
     def _luaExec(self, sourcefile) :
-        luaCodeSrc = open( sourcefile, "r")
+        luaCodeSrc = open_utf8_reading(sourcefile)
         luaret = thisBackend.luaRuntime.execute(luaCodeSrc.read())
         luaCodeSrc.close()
         return luaret

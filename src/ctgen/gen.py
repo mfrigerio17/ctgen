@@ -14,6 +14,7 @@ import motiondsl.motiondsl as motdsl
 import ctgen_backends
 import ctgen.common
 import ctgen.dataset as dataset
+from ctgen.pyutils import open_utf8_reading
 
 
 logger = logging.getLogger(__package__) # use '__package__' to make this the root logger
@@ -121,7 +122,7 @@ def main():
     configIn = {}
     if args.cfg is not None :
         try :
-            istream  = open(args.cfg, 'r')
+            istream  = open_utf8_reading(args.cfg)
             configIn = yaml.safe_load(istream)
             istream.close()
         except OSError as exc :

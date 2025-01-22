@@ -2,6 +2,7 @@ import pathlib
 import sympy.printing
 import ctgen_backends.cpp_iitrbd as thisBackend
 
+from ctgen.pyutils import open_utf8_reading
 
 class Configurator:
     '''
@@ -18,7 +19,7 @@ class Configurator:
         '''
         self.ctModel = ctModel
 
-        with open(pathlib.Path(__file__).parent.joinpath("configuration.lua"), "r") as cfgFile:
+        with open_utf8_reading(pathlib.Path(__file__).parent.joinpath("configuration.lua")) as cfgFile:
             self.textgen_cfg = thisBackend.luaRuntime.execute(cfgFile.read())
 
         if outer_config is not None :
@@ -27,7 +28,7 @@ class Configurator:
                 user_config = outer_config['textConfig']
                 if user_config is not None :
                     try :
-                        istream  = open(user_config, 'r')
+                        istream  = open_utf8_reading(user_config)
                         user_config = thisBackend.luaRuntime.execute(istream.read())
                         istream.close()
                         f = thisBackend.luaRuntime.execute('return ctgen__common.table_override')
