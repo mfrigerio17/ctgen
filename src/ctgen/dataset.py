@@ -7,6 +7,7 @@ import kgprim.ct.frommotions
 import kgprim.ct.repr.mxrepr as mxrepr
 import kgprim.ct.metadata
 import ctgen.common
+from ctgen.pyutils import open_utf8_writing
 
 
 logger = logging.getLogger(__name__)
@@ -62,7 +63,7 @@ def generateDataset(tr_info, matrix, datasetSize, whichone, path='.'):
     addItem = None
     filen = os.path.join(path, "dataset_{0}".format(tr_info.name))
     if whichone == 'csv' :
-        outfile = open(filen+'.csv', "w")
+        outfile = open_utf8_writing(filen+'.csv')
         addItem = addEntryCSVDataset
     elif whichone == "bin":
         outfile = open(filen+'.bin', "bw")

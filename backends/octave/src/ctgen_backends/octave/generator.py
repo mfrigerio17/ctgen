@@ -2,6 +2,7 @@ import logging, os
 import lupa
 import ctgen.common as ctgen_common
 from ctgen.pyutils import open_utf8_reading
+from ctgen.pyutils import open_utf8_writing
 from kgprim.ct.repr.mxrepr import MatrixRepresentation
 
 logger = logging.getLogger(__name__)
@@ -140,9 +141,8 @@ class Generator:
         def fwrite(ok, filename, text) :
             fpath = os.path.join(odir, filename)
             if ok :
-                f = open(fpath, 'w')
-                f.write(text)
-                f.close()
+                with open_utf8_writing(fpath) as f:
+                    f.write(text)
             else :
                 logger.info("Skipping file '{f}', as code generation failed".format(f=fpath))
 

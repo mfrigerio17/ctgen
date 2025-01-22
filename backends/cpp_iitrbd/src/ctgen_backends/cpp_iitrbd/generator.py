@@ -5,6 +5,7 @@ from kgprim.ct.repr.mxrepr import MatrixRepresentation
 import ctgen_backends.cpp_iitrbd as thisBackend
 import ctgen.common
 from ctgen.pyutils import open_utf8_reading
+from ctgen.pyutils import open_utf8_writing
 
 logger = logging.getLogger(__name__)
 
@@ -71,9 +72,8 @@ class Generator:
         outputDir = self.config.getOutputDirectory()
         def write_file(code, filepath):
             fpath = os.path.join( outputDir, filepath )
-            f = open(fpath, 'w')
-            f.write(code)
-            f.close()
+            with open_utf8_writing(fpath) as f:
+                f.write(code)
 
         fileNames = self.config.getOutputFileNames()
         #implext = '.h' if self.config.generateTemplates() else '.cpp'
