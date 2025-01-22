@@ -28,13 +28,14 @@ ctgen = "ctgen.gen:main"
 
 [tool.setuptools]
 
-packages = ["ctgen", "ctgen_backends.cpp_iitrbd", "ctgen_backends.octave"]
+packages = ["ctgen", "ctgen_backends.cpp_iitrbd", "ctgen_backends.octave", "ctgen_backends.plaintext"]
 
 [tool.setuptools.package-dir]
 
 ctgen = "src/ctgen"
 "ctgen_backends.cpp_iitrbd" = "backends/cpp_iitrbd/src/ctgen_backends/cpp_iitrbd"
 "ctgen_backends.octave"     = "backends/octave/src/ctgen_backends/octave"
+"ctgen_backends.plaintext"  = "backends/plaintext/src/ctgen_backends/plaintext"
 
 # What I would like to do is:
 ## [tool.setuptools]
