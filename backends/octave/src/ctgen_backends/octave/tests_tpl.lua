@@ -8,7 +8,7 @@ local testall_tpl =
 tf = «ids.mxClassName(mxmeta)»();
 ds = BinDataset('dataset_«mxmeta.ctMetadata.name».bin');
 display("Testing matrix «mxmeta.ctMetadata.name» . . .");
-ds.testMatrix(tf, «common.pylen(mxmeta.ctMetadata.vars)»);
+ds.testMatrix(tf, «common.pylen(mxmeta.ctMetadata.variables)», «common.pylen(mxmeta.ctMetadata.parameters)»);
 display("");
 
 @end

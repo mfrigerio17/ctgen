@@ -45,7 +45,7 @@ function reset(obj)
     fseek(obj.f, 0, SEEK_SET);
 end
 
-function testMatrix(obj, mx, stateVectorSize)
+function testMatrix(obj, mx, stateVarsCount, paramsCount)
     if feof(obj.f)
         warning('End of file. Perhaps you need to reset the dataset');
         return;
@@ -53,11 +53,14 @@ function testMatrix(obj, mx, stateVectorSize)
     err_o = 0;
     err_p = 0;
     count = 0;
+    updateMX = @obj._updateMatrix;
+    if paramsCount > 0
+        updateMX = @obj._updateMatrixWithParams;
+    end
     while obj.thereIsMore()
-        q = obj.readVector(stateVectorSize);
+        updateMX(mx, stateVarsCount, paramsCount);
+
         [R,tr] = obj.readPose();
-        q = num2cell(q);
-        mx.updateExplicit(q{:});
 
         aa = orientationDistance(R, mx.mx(1:3,1:3));
         err_o = err_o + aa.angle;
@@ -68,6 +71,20 @@ function testMatrix(obj, mx, stateVectorSize)
     display(['Average translation error: ' num2str(err_p/count)]);
 endfunction
 
+function _updateMatrix(obj, mx, stateVarsCount, _)
+    q = obj.readVector(stateVarsCount);
+    q = num2cell(q);
+    mx.updateExplicit(q{:});
+end
+
+function _updateMatrixWithParams(obj, mx, stateVarsCount, paramsCount)
+    q = obj.readVector(stateVarsCount);
+    q = num2cell(q);
+    p = obj.readVector(paramsCount);
+    p = num2cell(p);
+    mx.updateParams(p{:});
+    mx.updateExplicit(q{:});
+end
 
 endmethods
 
