@@ -2,8 +2,8 @@
 
 local function getSpecifics(config, ctModel)
     local ret = {}
-    local p_prefix = config.this_obj_ref .. "." .. config.parameters.member_name
-    local c_prefix = config.constants.container_name(ctModel)
+    local p_prefix = config.meta.this_obj_ref .. "." .. config.parameters.member_name
+    local c_prefix = config.meta.this_obj_ref .. "." .. config.meta.tf_class.members.constants
 
     ret.languageSpecifics = {
         matrixAssignment = function(varname,r,c,value)

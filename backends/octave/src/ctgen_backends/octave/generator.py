@@ -29,7 +29,7 @@ class Generator:
         luaCodeSrc.close()
         return luaret
 
-    def _generate_code(self, ctModelMetadata, matricesMetadata):
+    def generate_code(self, ctModelMetadata, matricesMetadata):
         '''
         Returns a dictionary of dictionaries of the same shape as the given
         `matricesMetadata`: the outer dictionary is indexed with a
@@ -90,7 +90,7 @@ class Generator:
         if not self._consistentArgs(ctModelMetadata) :
             return None
 
-        allCode, constants, tests = self._generate_code(ctModelMetadata, matricesMetadata)
+        allCode, constants, tests = self.generate_code(ctModelMetadata, matricesMetadata)
 
         def fwrite(ok, filename, text) :
             fpath = outputDirectory / filename
@@ -111,7 +111,7 @@ class Generator:
                 fwrite(ok, filename, codeOrError)
 
         ok, codeOrError = constants[:]
-        filename = self.lua_codegen_cfg.constants.container_name(ctModelMetadata) + "_init.m"
+        filename = self.lua_codegen_cfg.meta.constants_class.class_name(ctModelMetadata) + ".m"
         fwrite(ok, filename, codeOrError)
 
         ok, codeOrError = tests[:]

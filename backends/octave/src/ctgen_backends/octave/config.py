@@ -27,6 +27,6 @@ class Configurator:
 
     def getClassName(self, matrixMetadata):
         # we just rely on what the Lua config says
-        return self.textgen_cfg.mx_class_name(matrixMetadata)
+        return self.textgen_cfg.meta.tf_class.class_name(matrixMetadata)
 
 

@@ -2,10 +2,10 @@ local common = common
 
 local testall_tpl =
 [[
-«modelConstantsGlobal»_init;
+mc = «meta.constants_class.class_name(ctModelMetadata)»;
 
 @for i, mxmeta in ipairs(matrices_metadata) do
-tf = «ids.mxClassName(mxmeta)»();
+tf = «meta.tf_class.class_name(mxmeta)»(mc);
 ds = BinDataset('dataset_«mxmeta.ctMetadata.name».bin');
 display("Testing matrix «mxmeta.ctMetadata.name» . . .");
 ds.testMatrix(tf, «common.pylen(mxmeta.ctMetadata.variables)», «common.pylen(mxmeta.ctMetadata.parameters)»);
