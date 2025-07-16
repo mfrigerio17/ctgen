@@ -1,4 +1,4 @@
-import logging, os, pathlib
+import logging, pathlib
 
 import ctgen_backends.octave as thisBackend
 import ctgen.common
@@ -86,15 +86,14 @@ class Generator:
         return ret, (ok, codeOrError), (okt, testscode)
 
 
-    def generate(self, ctModelMetadata, matricesMetadata):
+    def generate(self, ctModelMetadata, matricesMetadata, outputDirectory):
         if not self._consistentArgs(ctModelMetadata) :
             return None
 
         allCode, constants, tests = self._generate_code(ctModelMetadata, matricesMetadata)
 
-        odir = self.config.getOutputDirectory()
         def fwrite(ok, filename, text) :
-            fpath = os.path.join(odir, filename)
+            fpath = outputDirectory / filename
             if ok :
                 with open_utf8_writing(fpath) as f:
                     f.write(text)
