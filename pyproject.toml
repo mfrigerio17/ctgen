@@ -7,7 +7,7 @@ authors     = [
     { name = "Marco Frigerio", email = "marco.frigerio17@pm.me" }
 ]
 
-license = { file = "LICENSE" }
+license = "BSD-3-Clause"
 readme = "readme.md"
 
 requires-python = ">=3.4"
@@ -32,17 +32,20 @@ packages = ["ctgen", "ctgen_backends.cpp_iitrbd", "ctgen_backends.octave"]
 
 [tool.setuptools.package-dir]
 
-"ctgen" = "src/ctgen"
-
-#"ctgen_backends" = "backends/cpp_iitrbd/src/ctgen_backends/"
-#"ctgen_backends" = "backends/octave/src/ctgen_backends/"
-## How to make the above work? I want the installation to include
-## modules that belong to the namespace package, but are stored in
-## separate folders
-
+ctgen = "src/ctgen"
 "ctgen_backends.cpp_iitrbd" = "backends/cpp_iitrbd/src/ctgen_backends/cpp_iitrbd"
 "ctgen_backends.octave"     = "backends/octave/src/ctgen_backends/octave"
 
+# What I would like to do is:
+## [tool.setuptools]
+## packages = ["ctgen", "ctgen_backends"]
+##
+## [tool.setuptools.package-dir]
+## ctgen = "src/ctgen"
+## ctgen_backends = ["backends/cpp_iitrbd/src/ctgen_backends/", "backends/octave/src/ctgen_backends/", ...]
+#
+# that is, specify only the root namespace package, and include subpackages and
+# modules that are stored in separate folders.
 
 
 [tool.setuptools.package-data]
