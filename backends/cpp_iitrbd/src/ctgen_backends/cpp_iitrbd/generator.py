@@ -68,8 +68,7 @@ class Generator:
         return (okh,headerCode), (oks,sourceCode)
 
 
-    def generate(self, ctModelMetadata, matricesMetadata):
-        outputDir = self.config.getOutputDirectory()
+    def generate(self, ctModelMetadata, matricesMetadata, outputDir):
         def write_file(code, filepath):
             fpath = os.path.join( outputDir, filepath )
             with open_utf8_writing(fpath) as f:

@@ -9,7 +9,7 @@ class Configurator:
     Configurator object for the code generator of this package.
     '''
 
-    def __init__(self, ctModel, outer_config=None, cmdline_overrides=None):
+    def __init__(self, ctModel, path_config_override=None, cmdline_overrides=None):
         '''
         Arguments:
         - `ctModel`: the current model given as input to `ctgen`
@@ -22,19 +22,15 @@ class Configurator:
         with open_utf8_reading(pathlib.Path(__file__).parent.joinpath("configuration.lua")) as cfgFile:
             self.textgen_cfg = thisBackend.luaRuntime.execute(cfgFile.read())
 
-        if outer_config is not None :
-            self.outdir = outer_config['outDir'] if 'outDir' in outer_config else  '_gen'
-            if 'textConfig' in outer_config :
-                user_config = outer_config['textConfig']
-                if user_config is not None :
-                    try :
-                        istream  = open_utf8_reading(user_config)
-                        user_config = thisBackend.luaRuntime.execute(istream.read())
-                        istream.close()
-                        f = thisBackend.luaRuntime.execute('return ctgen__common.table_override')
-                        f(self.textgen_cfg, user_config)
-                    except OSError as exc :
-                        core.logger.warning("Could not read configuration file '{0}': {1}".format(user_config, exc.strerror))
+        if path_config_override is not None :
+            try :
+                istream  = open_utf8_reading(path_config_override)
+                user_config = thisBackend.luaRuntime.execute(istream.read())
+                istream.close()
+                f = thisBackend.luaRuntime.execute('return ctgen__common.table_override')
+                f(self.textgen_cfg, user_config)
+            except OSError as exc :
+                core.logger.warning("Could not read configuration file '{0}': {1}".format(path_config_override, exc.strerror))
 
         # The option for C++ templates generation
         templates = self.textgen_cfg['tpl']['template_all'] or False
@@ -53,12 +49,6 @@ class Configurator:
         #if self.generateTemplates() :
         #    impl = impl + '.h'
         return self.textgen_cfg.files
-
-    def getOutputDirectory(self):
-        '''
-        The root folder where to place generated code
-        '''
-        return self.outdir
 
     def getHeadersPath(self):
         path = pathlib.Path(self.textgen_cfg.files.include_basedir)

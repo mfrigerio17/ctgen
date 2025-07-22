@@ -1,4 +1,4 @@
-import os, sys, pkgutil, importlib, argparse, logging, pathlib
+import sys, pkgutil, importlib, argparse, logging, pathlib
 import yaml
 import lupa
 
@@ -64,7 +64,7 @@ def main():
     argparser.add_argument('-o', '--output', dest='output', metavar='DIR', help='destination folder (defaults to /tmp/ctgen)')
     argparser.add_argument('-l', '--lang', dest='lang', metavar='LANG', help='desired programming language (defaults to {0})'.format(default_backend))
     argparser.add_argument('-c', '--config', dest='cfg', metavar='FILE', help='YAML configuration for the command line tool; command line switches override entries in this file')
-    argparser.add_argument('-cc', '--code-config', dest='code_cfg', metavar='FILE', help='LUA config file overriding the defaults of the selected code generator')
+    argparser.add_argument('-b', '--backend-config', dest='backend_cfg', metavar='FILE', help='LUA config file overriding the defaults of the selected code generator')
     argparser.add_argument('-s', '--gen-dataset', dest='dataset_size', type=int, metavar='COUNT', help='generate numerical datasets with COUNT entries (no code is generated)')
     argparser.add_argument('-f', '--dataset-format', dest='dataset_fmt', type=str, metavar='FMT', help='dataset format ("csv" or "bin", respectively text or binary)')
     argparser.add_argument('--fold-constants', dest='cfolding', action='store_const', const=fold_constants_str,  help='force constants folding')
@@ -149,8 +149,9 @@ def main():
     if args.output is not None :  # command-line override
         odir = args.output
     odir = odir or '/tmp/ctgen'   # default value, if it is still unset
-    if not os.path.exists(odir):  # create it if it is not there
-        os.makedirs(odir)
+    odir = pathlib.Path(odir)
+    if not odir.exists():  # create it if it is not there
+        odir.mkdir(parents=True)
     logger.debug("Output directory set to '{0}'".format(odir) )
 
     # Dataset generation
@@ -179,8 +180,6 @@ def main():
     logger.debug("Chosen representations: {0}".format([r.name for r in reprs]))
 
 
-    generatorConfig = {}
-    generatorConfig['outDir'] = odir
 
     # Code generation backend
     #
@@ -193,10 +192,10 @@ def main():
         logger.error("Unknown language tag '{0}'".format(lang))
         return -1
 
-    code_config = configIn.get('backend-config')
-    if args.code_cfg is not None :
-        code_config = args.code_cfg
-    generatorConfig['textConfig'] = code_config # may be None
+    backend_cfg = configIn.get('backend-config')
+    if args.backend_cfg is not None :
+        backend_cfg = args.backend_cfg
+
 
     # Constant folding
     #
@@ -219,7 +218,7 @@ def main():
     ctModelMeta = TransformsModelMetadata( ctModel, tfCustomNames )
 
     # Generate code
-    generator = backends[ lang ].get_generator( ctModel, generatorConfig, args )
+    generator = backends[ lang ].get_generator( ctModel, backend_cfg, args )
 
     allMetadata = {}
     for repr in reprs:
@@ -230,7 +229,7 @@ def main():
             metadata[tf_info.name] = meta
         allMetadata[repr] = metadata
 
-    generator.generate( ctModelMeta, allMetadata )
+    generator.generate( ctModelMeta, allMetadata, odir )
 
 
 if __name__ == '__main__':
