@@ -88,9 +88,14 @@ end
 --- Replace the values in `dest` with those from `src`, if they have the same
 -- key. Works recursively for nested tables.
 local function table_override(dest, src)
+    if not src then return end
     for k,v in pairs(src) do
         if type(v) == 'table' then
-            table_override(dest[k], v)
+            if not dest[k] then
+                dest[k] = v
+            else
+                table_override(dest[k], v)
+            end
         else
             dest[k] = v
         end
