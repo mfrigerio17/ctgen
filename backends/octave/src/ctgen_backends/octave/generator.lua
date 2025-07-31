@@ -88,7 +88,7 @@ classdef «class.name» < handle
 properties
     «class.members.constants»
 @if tf.parametric then
-    «ids.parameters.member_name» = struct();
+    «ids.parameters.member_name» = struct(«table.concat(params_struct_initializer_list, ',')»);
 @end
     «class.members.matrix» = zeros(«matrixReprMeta.rows()»,«matrixReprMeta.cols()»);
 end
@@ -102,20 +102,6 @@ function «ids.this» = «class.name»(«class.fargs.constants»)
     «statement»;
 @end
 
-@if tf.parametric then
-    % Initializes the parameters
-@   local P = ids.parameters.member_name
-@   for param, expressions in pairs(parameters) do
-@       for i, expr in pairs(expressions) do
-@           if expr.isRotation() then
-    «ids.this».«P».«ids.sinVarName(expr)» = 0;
-    «ids.this».«P».«ids.cosVarName(expr)» = 1;
-@           else
-    «ids.this».«P».«ids.varName(expr)» = 0;
-@           end
-@       end
-@   end
-@end
 end
 
 function «class.methods.update»(«ids.this», «ids.varStateArgName»)
@@ -147,19 +133,8 @@ function «class.methods.update_explicit_vars»(«ids.this»)
 end
 
 @if tf.parametric then
-@   local P = ids.parameters.member_name
 function «class.methods.update_parameters»(«ids.this», «table.concat(parnames, ", ")»)
-@   for param, expressions in pairs(parameters) do
-@       for i, expr in pairs(expressions) do
-@           local codearg = expr.toCode( param.name )
-@           if expr.isRotation() then
-    «ids.this».«P».«ids.sinVarName(expr)» = sin( «codearg» );
-    «ids.this».«P».«ids.cosVarName(expr)» = cos( «codearg» );
-@           else
-    «ids.this».«P».«ids.varName(expr)» = «codearg»;
-@           end
-@       end
-@   end
+    ${params_update_statements}
 end
 @end
 
@@ -175,9 +150,44 @@ end
         table.insert(varnames, var.name)
         varcount = varcount + 1
     end
+
+    local parameters, paramExpressions = common.python_unique_expressions_dict_to_tables( ctMetadata.parameter_expressions )
     local parnames = {}
-    for i,par in common.myiter(ctMetadata.pars) do
+    for _,par in ipairs(parameters) do
         table.insert(parnames, par.name)
+    end
+
+    local params_struct_initializer_list = {}
+    local params_update_statements = {}
+    for _,par in ipairs(parameters) do
+        for _, expr in ipairs(paramExpressions[par]) do
+            local defvalue_as_code = expr.toCode( tostring(par.defaultValue or 0) )
+            local newvalue_as_code = expr.toCode( par.name )
+
+            if expr.isRotation() then
+                table.insert(params_struct_initializer_list, "'"..env.ids.sinVarName(expr).."'")
+                table.insert(params_struct_initializer_list, "sin("..defvalue_as_code..")")
+                table.insert(params_struct_initializer_list, "'"..env.ids.cosVarName(expr).."'")
+                table.insert(params_struct_initializer_list, "cos("..defvalue_as_code..")")
+
+                table.insert(params_update_statements,
+                    string.format("%s.%s.%s = sin( %s );",
+                        env.ids.this, env.ids.parameters.member_name,
+                        env.ids.sinVarName(expr), newvalue_as_code))
+                table.insert(params_update_statements,
+                    string.format("%s.%s.%s = cos( %s );",
+                        env.ids.this, env.ids.parameters.member_name,
+                        env.ids.cosVarName(expr), newvalue_as_code))
+            else
+                table.insert(params_struct_initializer_list, "'"..env.ids.varName(expr).."'")
+                table.insert(params_struct_initializer_list, defvalue_as_code)
+
+                table.insert(params_update_statements,
+                    string.format("%s.%s.%s = %s;",
+                        env.ids.this, env.ids.parameters.member_name,
+                        env.ids.varName(expr), newvalue_as_code))
+           end
+        end
     end
     local statementsGen = assignments.getMatrixSpecificGenerators(
                 backendSpecifics.languageSpecifics, matrixReprMeta,
@@ -186,11 +196,12 @@ end
     env.class = config.meta.tf_class
     env.class.name = config.meta.tf_class.class_name(matrixReprMeta)
     env.tf = ctMetadata
-    env.parameters = common.python_dictOfSets_to_table( ctMetadata.pars )
     env.variables  = common.python_dictOfSets_to_table( ctMetadata.vars )
     env.varcount   = varcount
     env.matrixReprMeta = matrixReprMeta
     env.parnames = parnames
+    env.params_struct_initializer_list = params_struct_initializer_list
+    env.params_update_statements       = params_update_statements
     env.varnames = varnames
     env.statementsGenerator = statementsGen
 
