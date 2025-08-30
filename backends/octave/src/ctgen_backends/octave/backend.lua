@@ -1,6 +1,6 @@
 --- See the documentation of backend.lua in the plaintext backend
 
-local function getSpecifics(config, ctModel)
+local function getSpecifics(config)
     local ret = {}
     local p_prefix = config.meta.this_obj_ref .. "." .. config.parameters.member_name
     local c_prefix = config.meta.this_obj_ref .. "." .. config.meta.tf_class.members.constants

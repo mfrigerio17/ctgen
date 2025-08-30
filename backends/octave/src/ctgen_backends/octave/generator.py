@@ -10,9 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class Generator:
-    def __init__(self, configurator):
-        self.config  = configurator
-        self.lua_codegen_cfg = configurator.getTextGeneratorsConfiguration()
+    def __init__(self, lua_configuration_table):
+        self.lua_codegen_cfg = lua_configuration_table
 
         pathToHere   = pathlib.Path(__file__).parent
         pathToTempls = pathToHere
@@ -21,7 +20,7 @@ class Generator:
         self.luaGeneratorsF = self._luaExec(pathToHere.joinpath("generator.lua"))
 
         backend_lua = self._luaExec(pathToHere.joinpath("backend.lua"))
-        self.backendSpecifics = backend_lua.getSpecifics(self.lua_codegen_cfg, configurator.ctModel)
+        self.backendSpecifics = backend_lua.getSpecifics(self.lua_codegen_cfg)
 
     def _luaExec(self, sourcefile) :
         luaCodeSrc = open_utf8_reading(sourcefile)
@@ -40,8 +39,6 @@ class Generator:
         This function returns a second value, which is itself a tuple, with
         the success flag and the generated code for the model constants.
         '''
-        if not self._consistentArgs(ctModelMetadata) :
-            return None
 
         # Resolve the symbols of every matrix, put them in a map keyed in the
         # same way as the matrices-metadata argument
@@ -87,9 +84,6 @@ class Generator:
 
 
     def generate(self, ctModelMetadata, matricesMetadata, outputDirectory):
-        if not self._consistentArgs(ctModelMetadata) :
-            return None
-
         allCode, constants, tests = self.generate_code(ctModelMetadata, matricesMetadata)
 
         def fwrite(ok, filename, text) :
@@ -107,7 +101,7 @@ class Generator:
             for mxName in mxsMeta.keys() :
                 mxMeta  = mxsMeta[mxName]
                 ok,codeOrError = codeDict[mxName]
-                filename = self.config.getClassName(mxMeta) + ".m"
+                filename = self.lua_codegen_cfg.meta.tf_class.class_name(mxMeta) + ".m"
                 fwrite(ok, filename, codeOrError)
 
         ok, codeOrError = constants[:]
@@ -121,19 +115,5 @@ class Generator:
         if not ok :
             logger.error("Code generation failed - model '{model}', transform '{tr}': {err}"
                          .format(model=model, tr=tr, err=errmsg) )
-
-    def _consistentArgs(self, ctModelMetadata):
-        abort = False
-        if self.config is None :
-            logger.error("Configurator not set. Aborting")
-            abort = True
-        if self.config.ctModel != ctModelMetadata.ctModel :
-             logger.warning("The coordinate transform model of the given metadata object does not match the one used to configure this generator")
-             #abort = True
-        #TODO more?
-        if abort :
-            logger.error("Inconsistent arguments - aborting")
-        return not abort
-
 
 
