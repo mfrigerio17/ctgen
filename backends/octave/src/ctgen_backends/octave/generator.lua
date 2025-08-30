@@ -125,10 +125,10 @@ function «class.methods.update_explicit_vars»(«ids.this», «table.concat(var
     @for var, _ in pairs(variables) do
     «ctrl.variables.value_expression(var)» = «var.name»;
     @end
-    obj.«class.methods.update»(«ids.varStateArgName»);
+    «ids.this».«class.methods.update»(«ids.varStateArgName»);
 @else
 function «class.methods.update_explicit_vars»(«ids.this»)
-    obj.«class.methods.update»([]);
+    «ids.this».«class.methods.update»([]);
 @end
 end
 
