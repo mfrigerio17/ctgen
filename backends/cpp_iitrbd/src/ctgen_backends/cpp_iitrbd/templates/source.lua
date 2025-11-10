@@ -96,9 +96,20 @@ end
 local function container_class_methods(env)
     local template = [[
 «heading»
+@if ctModelMetadata.isParametric() then
+«qualifier»::«class»::«class»(const «ids.types.parameters_status»& initial) :
+«ctor_init_list», «meta.members.parameters»(initial)
+{}
+
+«qualifier»::«class»::«class»() :
+«ctor_init_list», «meta.members.parameters»(/*do we want the default instance of «ids.types.parameters_status» ?*/)
+{}
+@else
 «qualifier»::«class»::«class»() :
 «ctor_init_list»
 {}
+@end
+
 
 «heading»
 void «qualifier»::«class»::«meta.members.update»(const «ids.locals.variables_status_t»& «ids.locals.formalParams.varsStatus»)
@@ -110,6 +121,7 @@ void «qualifier»::«class»::«meta.members.update»(const «ids.locals.variab
 ]]
     local meta = env.ids.container_class
     local localenv = {
+        ctModelMetadata = env.ctModelMetadata,
         ctor_init_list = constructor_initializer_list(env.transforms, env.ids),
         class     = meta.class_name,
         meta      = meta,

@@ -133,11 +133,14 @@ local container_class_definition_template = [[
 @local META = ids.container_class
 struct «META.class_name»
 {
-    «META.class_name»();
 @if ctModelMetadata.isParametric() then
+    «META.class_name»();
+    «META.class_name»(const «ids.types.parameters_status»& initial);
     void «META.members.update_params»(const «ids.types.parameters_status»& mp) {
         «META.members.parameters» = mp;
     }
+@else
+    «META.class_name»();
 @end
 
     void «META.members.update»(const «ids.locals.variables_status_t»&);
