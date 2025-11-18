@@ -1,6 +1,6 @@
-CtgenSampleModelConstants_init;  % global variables with the model constants
+mc = CtgenSampleModelConstants;  % object with the model constants
 
-ExG = frameE_xh_frameG();      % creates a transform object
+ExG = frameE_xh_frameG(mc);      % creates a transform object
 
 varstate.q0 = rand(1,1);       % set the variables status
 varstate.q1 = rand(1,1);
@@ -13,7 +13,7 @@ v2 = ExG.mx * [rand(3,1); 1];  % the `mx` field is the actual matrix
 
 
 
-DxB = frameD_xh_frameB();      % another transform; this one is parametric
+DxB = frameD_xh_frameB(mc);      % another transform; this one is parametric
 
 DxB.updateParams( rand(1,1), rand(1,1) );   % set new parameters values
                                             % does NOT update the matrix

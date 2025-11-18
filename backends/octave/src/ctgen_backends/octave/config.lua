@@ -2,24 +2,21 @@
 local model_property_to_varname = function(property) return property.name end
 local variables_status_formal_parameter = 'state'
 local parameters_status_formal_parameter= 'params'
-local constants_container_name = function(ctModel) return ctModel.name .. 'ModelConstants' end
-local this_obj_ref = 'obj'
+
+local mx_class_name = function(matrixMetadata)
+    ctr  = matrixMetadata.ctMetadata.ct
+    kind = matrixMetadata.representationKind.name
+    key = 'X' -- default
+    if    (kind == "homogeneous") then key = 'xh'
+    elseif(kind == "spatial_motion") then key = 'xm'
+    elseif(kind == "spatial_force") then key = 'xf'
+    elseif(kind == "pure_rotation") then key = 'rot'
+    end
+
+    return ctr.leftFrame.name .. '_' .. key .. '_' .. ctr.rightFrame.name
+end
 
 local config = {
-
-    mx_class_name = function(matrixMetadata)
-        ctr  = matrixMetadata.ctMetadata.ct
-        kind = matrixMetadata.representationKind.name
-        key = 'X' -- default
-        if    (kind == "homogeneous") then key = 'xh'
-        elseif(kind == "spatial_motion") then key = 'xm'
-        elseif(kind == "spatial_force") then key = 'xf'
-        elseif(kind == "pure_rotation") then key = 'rot'
-        end
-
-        return ctr.leftFrame.name .. '_' .. key .. '_' .. ctr.rightFrame.name
-    end,
-
     model_property_to_varname = model_property_to_varname,
 
     variables = {
@@ -38,8 +35,6 @@ local config = {
     },
 
     constants = {
-        container_name = constants_container_name,
-        generate_local_defs = true,
         value_expression = function(container, constant)
             -- somewhere in the code need to make a closure of this function
             -- to get rid of the container argument, which will be the output
@@ -49,8 +44,27 @@ local config = {
         end
     },
 
-    this_obj_ref = this_obj_ref,
-    matrix_member_name = 'mx',
+    meta = {
+        this_obj_ref = 'obj',
+        tf_class = {
+            class_name = mx_class_name,
+            members = {
+                matrix    = 'mx',
+                constants = 'constants',
+            },
+            methods = {
+                update_parameters = 'updateParams',
+                update = 'update',
+                update_explicit_vars = 'updateExplicit',
+            },
+            fargs = {
+                constants = 'cc',
+            }
+        },
+        constants_class = {
+            class_name = function(ctModel) return ctModel.name .. 'ModelConstants' end,
+        },
+    },
 
     internal = {
         cached_value_identifier    = function(expression) return expression.toIdentifier() end,
