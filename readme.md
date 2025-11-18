@@ -132,11 +132,6 @@ ctgen --output /tmp/ctgen -s 100 sample/model.motdsl
 
 The format of the dataset is documented in the `dataset.py` module.
 
-Note that,
-at the moment, parametric matrices are not fully supported, meaning that the
-numerical coefficients in the dataset will correspond to the default values of
-the parameters only.
-
 
 # License
 Copyright 2020-2022, Marco Frigerio
