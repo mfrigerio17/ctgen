@@ -101,6 +101,7 @@ local function container_class_methods(env)
 «ctor_init_list», «meta.members.parameters»(initial)
 {}
 
+«heading»
 «qualifier»::«class»::«class»() :
 «ctor_init_list», «meta.members.parameters»(/*do we want the default instance of «ids.types.parameters_status» ?*/)
 {}
