@@ -178,7 +178,7 @@ struct «CLASS» : public «ids.class_names.tf_base»<«CLASS»>
 @   for _,polarity in pairs({true, false}) do
 @       cast_t = ids.inherited.members.ct.cast_type[kind](polarity)
 @       method = META.members.view_as[kind](tfMetadata,polarity)
-    «cast_t» «method»() const { return as<«cast_t»>(); }
+    «cast_t» «method»() const { return this->template as<«cast_t»>(); }
 @   end
 @end
 
