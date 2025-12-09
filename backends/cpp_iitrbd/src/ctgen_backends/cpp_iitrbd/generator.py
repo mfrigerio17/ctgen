@@ -106,23 +106,6 @@ class Generator:
         fulldir = os.path.join( outputDir, testsdir )
         if not os.path.exists(fulldir) :
             os.makedirs(fulldir)
-        # and now for the header file
-        fulldir = os.path.join( fullhpath, testsdir )
-        if not os.path.exists(fulldir) :
-            os.makedirs(fulldir)
-
-        ok, code = self.generators.tests.header()
-        if not ok :
-            logger.error("Failed to generate tests header: " + code)
-        else:
-            hpath_test = os.path.join(hpath, testsdir)
-            write_file(code, os.path.join(hpath_test, fileNames.test.header))
-
-        ok, code = self.generators.tests.source()
-        if not ok :
-            logger.error("Failed to generate tests source: " + code)
-        else:
-            write_file(code, os.path.join(testsdir, fileNames.test.source))
 
         for tf in ctModelMetadata.transformsMetadata :
             ok, code = self.generators.tests.per_tf_main(tf)

@@ -62,7 +62,7 @@ public:
     {
         readLine();
         for(unsigned int c=0; c<count; c++) {
-            line_parser >> out(c);
+            line_parser >> out[c];
         }
     }
 private:
@@ -107,7 +107,7 @@ public:
     {
         readBuff(count);
         for(unsigned int c=0; c<count; c++) {
-            out(c) = buf[c];
+            out[c] = buf[c];
         }
     }
 

@@ -1,113 +1,90 @@
 local common = common
 
-
-local header_template =
+local individual_main_template =
 [[
-#pragma once
-
+#include <array>
 #include <iit/rbd/rbd.h>
+#include <ctgen/cppiitrbd/testmain_tpl.h>
 #include <ctgen/cppiitrbd/dataset.h>
 
 #include <«ids.include_path»/«files.header»>
 
-${ids.ns.open}
-
-using Mx44 = iit::rbd::PlainMatrix<double,4,4>;
-
-
-@for i, tf in ipairs(transforms) do
 struct Test_«tf.name»
 {
-    static void computeMatrix(::ctgen::TextDataset& ds, Mx44& computed);
-    static void computeMatrix(::ctgen::NaiveBinDataset& ds, Mx44& computed);
+    using Mx44 = iit::rbd::PlainMatrix<double,4,4>;
+
+    static void computeMatrix(::ctgen::NaiveBinDataset& ds, Mx44& computed) {
+        compute_«tf.name»<::ctgen::NaiveBinDataset>(ds, computed);
+    }
+    static void computeMatrix(::ctgen::TextDataset& ds, Mx44& computed) {
+        compute_«tf.name»<::ctgen::TextDataset>(ds, computed);
+    }
+
+private:
+    template<class Dataset>
+    static void compute_«tf.name»(Dataset& ds, Mx44& computed)
+    {
+        using Transform = «ns»::«ids.transform_class.class_name(tf)»;
+@if tf.is_parametric then
+        using SrcParams = «ns»::«ctrl.parameters.status_type»;
+        using Params    = «ns»::«ctrl.parameters.internal_type»;
+        static Params params;
+        static Transform xt(params);
+        static SrcParams srcParams;
+@else
+        static Transform xt;
+@end
+@if tf.is_dependent then
+        static «ns»::VarsState q;
+@   local vcount = common.pylen(tf.variables)
+        std::array<double, «vcount»> aux_vars;
+        ds.readVector(«vcount», aux_vars);
+@   local i = 0
+@   for var in python.iter(tf.variables) do
+        «ctrl.variables.assignable_expression(var, "q")» = aux_vars[«i»];
+@       i = i + 1
+@   end
+@end
+@if tf.is_parametric then
+@   local pcount = common.pylen(tf.parameters)
+        std::array<double, «pcount»> aux_pars;
+        ds.readVector(«pcount», aux_pars);
+@   local i = 0
+@   for p in python.iter(tf.parameters) do
+        srcParams.«ids.model_property_to_varname(p)» = aux_pars[«i»];
+@       i = i + 1
+@   end
+    // inject the new parameter values in the transform
+        params = srcParams;
+@   if not tf.is_dependent then
+        xt.update();
+@   end
+@end
+@if tf.is_dependent then
+        computed = xt(q).«ids.transform_class.members.view_as.homog(tf,true)»().matrix();
+@else
+        computed = xt.«ids.transform_class.members.view_as.homog(tf,true)»().matrix();
+@end
+    }
+
 };
 
-@end
-
-${ids.ns.close}
-]]
-
-local source_template =
-[[
-#include <«ids.include_path»/«files.test.subdir»/«files.test.header»>
-
-template<int N>
-using Vec = iit::rbd::PlainMatrix<double,N,1>;
-
-@if template_all then
-«ids.ns.qualifier»::Transforms<double> transforms;
-«ids.ns.qualifier»::VarsState<double> q;
-«ids.ns.qualifier»::«ids.types.parameters_status»<double> params;
-@else
-«ids.ns.qualifier»::Transforms transforms;
-«ids.ns.qualifier»::VarsState q;
-«ids.ns.qualifier»::«ids.types.parameters_status» params;
-@end
-
-namespace {
-
-@for i, tf in ipairs(transforms) do
-template<class Dataset>
-void compute_«tf.name»(Dataset& ds, «ids.ns.qualifier»::Mx44& computed)
-{
-@   if tf.is_dependent then
-@       local vcount = common.pylen(tf.variables)
-    Vec<«vcount»> aux_vars;
-    ds.readVector(«vcount», aux_vars);
-@       local i = 0
-@       for var in python.iter(tf.variables) do
-    «ctrl.variables.assignable_expression(var, "q")» = aux_vars(«i»);
-@           i = i + 1
-@       end
-@   end
-@   if tf.is_parametric then
-@       local pcount = common.pylen(tf.parameters)
-    Vec<«pcount»> aux_pars;
-    ds.readVector(«pcount», aux_pars);
-@       local i = 0
-@       for p in python.iter(tf.parameters) do
-    params.«ids.model_property_to_varname(p)» = aux_pars[«i»];
-@           i = i + 1
-@       end
-    transforms.updateParams(params);
-@   end
-    computed = transforms.«ids.container_class.members.transform(tf)»(q).«ids.transform_class.members.view_as.homog(tf,true)»().matrix();
-}
-
-@end
-
-}
-
-@for i, tf in ipairs(transforms) do
-void «ids.ns.qualifier»::Test_«tf.name»::computeMatrix(::ctgen::NaiveBinDataset& ds, Mx44& computed) {
-    compute_«tf.name»<::ctgen::NaiveBinDataset>(ds, computed);
-}
-void «ids.ns.qualifier»::Test_«tf.name»::computeMatrix(::ctgen::TextDataset& ds, Mx44& computed) {
-    compute_«tf.name»<::ctgen::TextDataset>(ds, computed);
-}
-
-@end
-
-]]
-
-local individual_main_template =
-[[
-#include <«ids.include_path»/«files.test.subdir»/«files.test.header»>
-#include <ctgen/cppiitrbd/testmain_tpl.h>
 
 int main(int argc, char** argv)
 {
-    return ::ctgen::testmain<«ids.ns.qualifier»::Test_«tf.name»>(argc, argv);
+    return ::ctgen::testmain<Test_«tf.name»>(argc, argv);
 }
 ]]
 
 local function generators(env)
 
     return {
-        header = function() return common.tpleval(header_template, env) end,
-        source = function() return common.tpleval(source_template, env) end,
         per_tf_main = function(tf)
             env.tf = tf
+            env.ns = env.ids.ns.qualifier
+            if env.template_all then
+                env.ns = env.ns .. "::" .. env.tpl.container.name .. "<double>"
+            end
             return common.tpleval(individual_main_template, env)
         end
     }

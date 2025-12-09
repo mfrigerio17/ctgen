@@ -7,27 +7,27 @@ project(ctgen-«ctModelMetadata.name»)
 
 add_compile_options(-Wall -O2 -std=c++11)
 
-
-set(SOURCES
-@if not template_all then
-    «files.source»
-@end
-    «files.test.subdir»/«files.test.source»
-)
-
 # Include directories
 include_directories(./«files.include_basedir»)
 
+@if not template_all then
+set(SOURCES
+    «files.source»
+)
 add_library(objs OBJECT ${SOURCES})
+@end
 
 @for i, tf in ipairs(transforms) do
 add_executable(t_«tf.name»
+@   if not template_all then
     \$<TARGET_OBJECTS:objs>
+@   end
     «files.test.subdir»/«files.test.per_tf_source(tf)»
 )
 target_link_libraries(t_«tf.name» ctgen_cppiitrbd_test)
 
 @end
+
 
 ]]
 
