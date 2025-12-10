@@ -2,20 +2,38 @@ local tplmodule = require('template-text')
 local math = require('math')
 
 
+local function template_load(template, env)
+    local ok, loaded = tplmodule.tload(template, {xtendStyle=true}, env)
+    if not ok then error(table.concat(loaded, '\n'), 2) end
+    return loaded
+end
+
+local function template_evaluate(loaded_template, opts, env_override)
+    local ok, text = loaded_template.evaluate(opts, env_override)
+    if not ok then error(table.concat(text,'\n'), 2) end
+    return text
+end
+
 --- Template evaluation function
 -- Just a wrapper of the actual function in `template-text`, defaulting to
 -- Xtend-style templates
-local function tpleval(text, env, opts)
-  local options = opts or {}
-  options.xtendStyle = true
-  options.verbose = true
-  return tplmodule.template_eval(text, env, options)
+local function tpleval(text, env, opts, included_templates)
+    local options = opts or {}
+    options.xtendStyle = true
+
+    return tplmodule.template_eval(text, env, options, included_templates)
 end
 
-local function tpleval_failonerror(tpl, env, opts)
-    local ok, text = tpleval(tpl, env, opts)
-    if not ok then error(text) end
-    return text
+local function tpleval_failonerror(tpl, env, opts, included_templates)
+    local options = opts or {}
+    options.xtendStyle = true
+
+    local ok, ret = tplmodule.tload(tpl, options, env, included_templates)
+    if ok then
+        ok, ret = ret.evaluate(options)
+    end
+    if not ok then error(table.concat(ret, '\n'), 2) end
+    return ret
 end
 
 --- Like `ipairs`, but `decorator` is applied to each string of the given list
@@ -114,6 +132,8 @@ local function py_matrix_coeff(mx)
 end
 
 common = {
+    template_load = template_load,
+    template_evaluate = template_evaluate,
     tpleval = tpleval,
     tpleval_failonerror = tpleval_failonerror,
     decorated_names_iterator = decorated_names_iterator,
