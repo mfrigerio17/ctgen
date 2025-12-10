@@ -14,8 +14,7 @@ local source_template = [[
 using «ids.ns.qualifier»::«ids.locals.scalar_t»;
 @end
 
-${constants_code.definitions()}
-
+${constants_definitions}
 
 @for i, tf in ipairs(transforms) do
 ${transform_class_methods(tf)}

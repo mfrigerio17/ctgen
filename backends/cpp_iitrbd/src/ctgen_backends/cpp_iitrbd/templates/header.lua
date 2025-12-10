@@ -29,7 +29,7 @@ using «scalar_t» = typename «ids.locals.scalar_traits»::Scalar;
 @end
 
 
-${constants_code.containers()}
+${constants_containers}
 
 
 @if ctrl.parameters.generate_local_status_type then

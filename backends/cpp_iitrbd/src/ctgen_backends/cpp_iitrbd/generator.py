@@ -23,6 +23,7 @@ class Generator:
         self._luaExec(pathToTempls.joinpath("cmake.lua"))
         self._luaExec(pathToTempls.joinpath("header.lua"))
         self._luaExec(pathToTempls.joinpath("source.lua"))
+        self._luaExec(pathToTempls.joinpath("constants.lua"))
         self._luaExec(pathToTempls.joinpath("tests.lua"))
 
         backend_lua = self._luaExec(pathToHere.joinpath("backend.lua"))

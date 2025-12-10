@@ -97,118 +97,6 @@ local function ids(ctModelMetadata, config)
 end
 
 
-local function constants_stuff(env)
-    local decl = ''
-    local def  = ''
-    if env.ctrl.constants.use_constexpr then
-        decl = 'static constexpr «scalar» «name»{«value»};'
-        def  = '«tpl»constexpr «scalar» «ns»::«container»::«name»;'
-    else
-        decl = 'static const «scalar» «name»;'
-        def  = '«tpl»const «scalar» «ns»::«container»::«name»{«value»};'
-    end
-    local tpl= ''
-    local ns = env.ids.ns.qualifier
-    if env.template_all then
-        ns  = ns .. '::' .. env.tpl.container.in_qualifier
-        tpl = env.tpl.heading .. '\n'
-    end
-
-    local lenv = {
-        scalar = env.ids.locals.scalar_t, ns= ns, tpl= tpl
-    }
-    local function code(whichtpl, name, value, container)
-        lenv.name  = name
-        lenv.value = value
-        lenv.container = container or ''
-        return common.tpleval_failonerror(whichtpl, lenv)
-    end
-    local function declare(name, value, container) return code(decl, name, value, container) end
-    local function define (name, value, container) return code(def , name, value, container) end
-
-    local function values(expr)
-        local constant = expr.expression.arg
-        local const_value_code_expr
-        if env.ctrl.constants.generate_local_defs then
-            -- internal, default policy
-            const_value_code_expr = env.ctrl.constants.local_defs_container_name
-                .. '::' .. env.ids.model_property_to_varname(constant)
-        else
-            -- user-supplied policy
-            const_value_code_expr = env.ctrl.constants.value_expression(constant)
-        end
-        local codearg = expr.toCode( const_value_code_expr )
-        return {
-            plain = codearg,
-            sine  = env.ids.locals.scalar_traits .. '::sin(' .. codearg ..')',
-            cosine= env.ids.locals.scalar_traits .. '::cos(' .. codearg ..')'
-        }
-    end
-
-    local tpl_foreach_expr = [[
-@local container = ids.locals.constants_container
-@for i, constant in ipairs(constants) do
-@   for i, expr in ipairs(const_expressions[constant]) do
-@       local values = values(expr)
-@       if expr.isRotation() then
-«statement(ids.locals.sinVarName(expr), values.sine, container)»
-«statement(ids.locals.cosVarName(expr), values.cosine, container)»
-@       else
-@           if not expr.isIdentity() then
-«statement(ids.locals.varName(expr), values.plain, container)»
-@           end
-@       end
-@   end
-@end
-]]
-    local function foreach_expr(statement_gen)
-        env.statement = statement_gen
-        env.values    = values
-        return common.tpleval_failonerror(tpl_foreach_expr, env, {returnTable=true})
-    end
-
-    local tpl_containers = [[
-@if ctrl.constants.generate_local_defs then
-struct «ctrl.constants.local_defs_container_name» {
-@ for i, constant in ipairs(constants) do
-    «declare(ids.model_property_to_varname(constant), constant.value)»
-@ end
-};
-@end
-
-struct «ids.locals.constants_container» {
-    ${each_expr_declaration}
-};
-
-]]
-    local tpl_definitions = [[
-@local container = ctrl.constants.local_defs_container_name
-@if ctrl.constants.generate_local_defs then
-    @ for i, constant in ipairs(constants) do
-«define(ids.model_property_to_varname(constant), constant.value, container)»
-    @ end
-@end
-
-${each_expr_definition}
-]]
-
-    env.declare = declare
-    env.define  = define
-
-    local function containers()
-        env.each_expr_declaration = foreach_expr(declare)
-        return common.tpleval_failonerror(tpl_containers, env, {returnTable=true})
-    end
-    local function definitions()
-        env.each_expr_definition = foreach_expr(define)
-        return common.tpleval_failonerror(tpl_definitions, env, {returnTable=true})
-    end
-    return {
-        containers = containers,
-        definitions= definitions
-    }
-end
-
 
 local function main_generator(env)
     local tpl=[[
@@ -268,8 +156,9 @@ local function generators(backendSpecifics, ctModelMetadata, homCoordRepresentat
     env.template_all = config.tpl.template_all
     env.tpl = scalar_tpl_utils(ids.locals.scalar_t, config.tpl.dummy_container)
 
-    local constants_code = constants_stuff(env)
-    env.constants_code = constants_code
+    local constants_generators = ctgen__cpp_constants_generators(env)
+    env.constants_containers = constants_generators.containers()
+    env.constants_definitions= constants_generators.definitions()
 
     local function transform_class_ctor_arguments(tf)
       if tf.parametric then

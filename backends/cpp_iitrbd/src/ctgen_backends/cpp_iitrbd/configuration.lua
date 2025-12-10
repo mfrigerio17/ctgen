@@ -117,7 +117,7 @@ local config = {
         value_expression = function(constant)
             return model_property_to_varname(constant)
         end,
-        use_constexpr = false -- set to true only if the scalar type is going to be a LiteralType
+        use_constexpr = true -- set to false only if the scalar type is not a LiteralType
     },
 
     scalar_traits = {
