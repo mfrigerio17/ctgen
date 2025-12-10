@@ -15,6 +15,11 @@ def add_cmdline_arguments(args):
                       action='store_const', const=True, default=None,
                       help='force generation of code templated on the scalar type')
 
+    args.add_argument('--no-constexpr', dest='noconstexpr',
+                      action='store_const', const=True, default=None,
+                      help='do not use constexpr for the scalar constants')
+
+
 def get_generator(ctModel, path_config_override, cmdline_args):
     import ctgen_backends.cpp_iitrbd as cpp
     import ctgen_backends.cpp_iitrbd.generator

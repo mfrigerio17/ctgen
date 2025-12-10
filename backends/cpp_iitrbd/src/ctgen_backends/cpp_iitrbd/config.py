@@ -21,6 +21,9 @@ class Configurator:
 
         with open_utf8_reading(pathlib.Path(__file__).parent.joinpath("configuration.lua")) as cfgFile:
             self.textgen_cfg = thisBackend.luaRuntime.execute(cfgFile.read())
+            # Keep in mind this is NOT a python dictionary, but a Lua table
+            # get(..) will not work, but querying for missing keys does not
+            # error an yields nil (None)
 
         if path_config_override is not None :
             try :
@@ -32,13 +35,23 @@ class Configurator:
             except OSError as exc :
                 core.logger.warning("Could not read configuration file '{0}': {1}".format(path_config_override, exc.strerror))
 
-        # The option for C++ templates generation
+        # Check for command-line overrides.
+        # We assume that the command line optional flags are None when
+        # not given by the user, and True otherwise; never False.
+
         templates = self.textgen_cfg['tpl']['template_all'] or False
+        constexpr = self.textgen_cfg['constants']['use_constexpr'] # I want it to default to true, but cannot use 'or True' !!!
+        if constexpr is None: constexpr = True  # defaults to True if missing in the dictionary
+
+        NOconstexpr = not constexpr
         if cmdline_overrides is not None :
-            templates = cmdline_overrides.template or templates
-        # Reset the config value, to make sure a value is there (and to consider
-        # the command-line override, if any)
+            templates   = cmdline_overrides.template or templates
+            NOconstexpr = cmdline_overrides.noconstexpr or NOconstexpr
+
+        # Reset the config values, to make sure a value is there (possibly the
+        # command-line flag)
         self.textgen_cfg['tpl']['template_all'] = templates
+        self.textgen_cfg['constants']['use_constexpr'] = (not NOconstexpr)
 
         # Add to the Lua configuration the function to stringify Sympy
         # expressions
