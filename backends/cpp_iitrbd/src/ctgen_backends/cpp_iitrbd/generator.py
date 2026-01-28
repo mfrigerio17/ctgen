@@ -1,5 +1,5 @@
 import os, logging, copy, pathlib
-import lupa
+
 from kgprim.ct.repr.mxrepr import MatrixRepresentation
 
 import ctgen_backends.cpp_iitrbd as thisBackend
@@ -17,9 +17,13 @@ class Generator:
         self.lua_codegen_cfg = config.getTextGeneratorsConfiguration()
 
         pathToHere   = pathlib.Path(__file__).parent
-        pathToTempls = pathToHere.joinpath("templates")
+
+        pathToCommon = pathlib.Path(ctgen.common.__file__).parent
+        self._luaExec(pathToCommon.joinpath("common.lua"))
+        self._luaExec(pathToCommon.joinpath("assignments.lua"))
 
         self.lua_generator = self._luaExec(pathToHere.joinpath("generator.lua"))
+        pathToTempls = pathToHere.joinpath("templates")
         self._luaExec(pathToTempls.joinpath("cmake.lua"))
         self._luaExec(pathToTempls.joinpath("header.lua"))
         self._luaExec(pathToTempls.joinpath("source.lua"))
@@ -30,10 +34,9 @@ class Generator:
         self.backendSpecifics = backend_lua.getSpecifics(self.lua_codegen_cfg)
 
     def _luaExec(self, sourcefile) :
-        luaCodeSrc = open_utf8_reading(sourcefile)
-        luaret = thisBackend.luaRuntime.execute(luaCodeSrc.read())
-        luaCodeSrc.close()
-        return luaret
+        with open_utf8_reading(sourcefile) as luaCodeSrc:
+            return self.config.LuaRuntime.execute(luaCodeSrc.read())
+
 
     def generate_code(self, ctModelMetadata, matricesMetadata):
         mxMetadata = None
