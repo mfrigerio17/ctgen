@@ -65,9 +65,10 @@ struct «ids.types.variables_status» {
 using «varstate_t» = «ids.types.variables_status»;
 
 template<typename ACTUAL>
-struct «ids.class_names.tf_base» : public «ext_ns»::«ids.external.transform_base_class»<«varstate_t», ACTUAL>
+struct «ids.class_names.tf_base» : public «ext_ns»::«ids.external.transform_base_class»<«scalar_t»>,
+    public «ext_ns»::«ids.external.state_dependent_base_class»<«varstate_t», ACTUAL>
 {
-    using Base = «ext_ns»::«ids.external.transform_base_class»<«varstate_t», ACTUAL>;
+    using Base = «ext_ns»::«ids.external.transform_base_class»<«scalar_t»>;
     «ids.class_names.tf_base»() : Base(0) {} // calls explicit constructor setting data to 0
 };
 

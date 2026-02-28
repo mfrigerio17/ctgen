@@ -178,6 +178,7 @@ local config = {
             },
 
             base_class = 'TransformBase',
+            state_dependent_trait_base = 'StateDependentBase',
             double_traits = 'DoubleTraits',
             scalar_traits = 'ScalarTraits',
             scalar_type_name = 'Scalar',

@@ -82,6 +82,7 @@ local function ids(ctModelMetadata, config)
 
     external = {
       transform_base_class = config.external.iit_rbd.base_class,
+      state_dependent_base_class = config.external.iit_rbd.state_dependent_trait_base,
       ns = ns_utils(config.external.iit_rbd.namespaces),
       default_scalar_traits_instantiation = config.external.iit_rbd.double_traits,
       scalar_traits = config.external.iit_rbd.scalar_traits,
