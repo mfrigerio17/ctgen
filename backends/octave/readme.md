@@ -26,7 +26,7 @@ tests
 ```
 
 # License
-Copyright 2020-2022, Marco Frigerio
+© 2020 Marco Frigerio
 
 Distributed under the BSD 3-clause license. See the `LICENSE` file for more
 details.
