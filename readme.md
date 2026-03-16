@@ -16,6 +16,11 @@ frames, i.e., code that defines the right matrices with the right coefficients.
 More specific features of the generated code depend on the selected backend.
 
 # Installation
+```sh
+pip install ctgen
+```
+
+Alternatively, from a clone of the source tree:
 
 ```sh
 git clone <this repo> ctgen
@@ -25,7 +30,7 @@ pip install .
 
 ## Requirements
 
-Python >= 3.4 **and** Lua >= 5.2.
+Python >= 3.9 **and** Lua >= 5.2.
 
 Lua and Lua packages must be installed manually (i.e. they are not
 handled by `pip`). I suggest to follow the docs of
@@ -58,6 +63,11 @@ pip install .   # will also fetch other dependencies
 luarocks install template-text
 ```
 
+## Docker
+
+There is a sample [Dockerfile](etc/Dockerfile) to build a minimal image with
+Python, Lua, and the template engine. In a corresponding container you will be
+able to install CtGen with pip and launch it right away.
 
 # Usage
 ```
@@ -65,41 +75,36 @@ ctgen <input file>
 ```
 Refer to the command line help `ctgen --help` for the options.
 
-See [`sample/model.motdsl`](sample/model.motdsl) for the input file format
-(a "MotionsDSL" model).
+See [`sample/basic/model.motdsl`](sample/basic/model.motdsl) for the input file
+format (a "MotionsDSL" model).
 
-See [`sample/config.yaml`](sample/config.yaml) for the configuration file format.
+See [`sample/basic/config.yaml`](sample/basic/config.yaml) for the configuration
+file format.
 The configuration file is optional. Most of the options can be specified on the
 command line as well. Command line options override matching entries in the
 configuration file.
 
-If you install the Lua template engine in a local path, via Luarocks, you need
-to issue
-```
-eval `luarocks path`
-```
-before attempting to launch `ctgen`.
 
 ## Examples
 Use the given sample model and all the defaults:
 ```
-ctgen sample/model.motdsl
+ctgen sample/basic/model.motdsl
 ```
 
 Use the C++ backend shipped with the tool:
 ```
-ctgen -l cpp_iitrbd sample/model.motdsl
+ctgen -l cpp_iitrbd sample/basic/model.motdsl
 ```
 
 Use the sample configuration file:
 ```
-ctgen -c sample/config.yaml sample/model.motdsl
+ctgen -c sample/config.yaml sample/basic/model.motdsl
 ```
 
 Use explicit command line switches to set the language backend, the output
 folder, and to request the homogeneous coordinates representation only:
 ```
-ctgen --lang octave --output /tmp/ctgen/octave -xH sample/model.motdsl
+ctgen --lang octave --output /tmp/ctgen/octave -xH sample/basic/model.motdsl
 ```
 
 
@@ -127,7 +132,7 @@ of entries, depending on the command line argument.
 E.g.:
 
 ```
-ctgen --output /tmp/ctgen -s 100 sample/model.motdsl
+ctgen --output /tmp/ctgen -s 100 sample/basic/model.motdsl
 ```
 
 The format of the dataset is documented in the `dataset.py` module.
