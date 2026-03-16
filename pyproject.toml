@@ -10,7 +10,7 @@ authors     = [
 license = "BSD-3-Clause"
 readme = "readme.md"
 
-requires-python = ">=3.4"
+requires-python = ">=3.9"
 
 dependencies = [
     "numpy",
@@ -20,7 +20,9 @@ dependencies = [
     "kgprim >= 0.1.1"
 ]
 
-urls = { home= "https://github.com/mfrigerio17/ctgen" }
+[project.urls]
+Homepage   = "https://github.com/mfrigerio17/ctgen"
+Repository = "https://github.com/mfrigerio17/ctgen"
 
 [project.scripts]
 ctgen = "ctgen.gen:main"
