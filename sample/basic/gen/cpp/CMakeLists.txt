@@ -3,15 +3,12 @@ project(ctgen-CtgenSample)
 
 add_compile_options(-Wall -O2 -std=c++11)
 
-
-set(SOURCES
-    transforms.cpp
-    test/tests.cpp
-)
-
 # Include directories
 include_directories(./include)
 
+set(SOURCES
+    transforms.cpp
+)
 add_library(objs OBJECT ${SOURCES})
 
 add_executable(t_frameA_X_frameB
@@ -31,5 +28,6 @@ add_executable(t_frameE_X_frameG
     test/test_frameE_X_frameG.cpp
 )
 target_link_libraries(t_frameE_X_frameG ctgen_cppiitrbd_test)
+
 
 

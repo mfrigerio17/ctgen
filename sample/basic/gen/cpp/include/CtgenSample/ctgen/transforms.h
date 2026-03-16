@@ -13,21 +13,26 @@ using ScalarTraits = iit::rbd::DoubleTraits;
 using scalar_t = typename ScalarTraits::Scalar;
 
 
-struct ModelConstants {
-    static const scalar_t c0;
-    static const scalar_t c1;
-    static const scalar_t rz;
+/**
+ * The numerical constants as they appear in the source model
+ */
+struct ModelConstants
+{
+    static constexpr scalar_t c0{0.2};
+    static constexpr scalar_t c1{3.1};
+    static constexpr scalar_t rz{0.6};
 };
 
-struct Constants {
-    static const scalar_t s__c0;
-    static const scalar_t c__c0;
-    static const scalar_t s__rz;
-    static const scalar_t c__rz;
-
+/**
+ * Derived constant expressions
+ */
+struct Constants
+{
+    static constexpr scalar_t s__c0{ScalarTraits::sin(ModelConstants::c0)};
+    static constexpr scalar_t c__c0{ScalarTraits::cos(ModelConstants::c0)};
+    static constexpr scalar_t s__rz{ScalarTraits::sin(ModelConstants::rz)};
+    static constexpr scalar_t c__rz{ScalarTraits::cos(ModelConstants::rz)};
 };
-
-
 
 
 struct ModelParameters
@@ -71,9 +76,10 @@ struct VarsState {
 using state_t = VarsState;
 
 template<typename ACTUAL>
-struct Transform : public iit::rbd::TransformBase<state_t, ACTUAL>
+struct Transform : public iit::rbd::TransformBase<scalar_t>,
+    public iit::rbd::StateDependentBase<state_t, ACTUAL>
 {
-    using Base = iit::rbd::TransformBase<state_t, ACTUAL>;
+    using Base = iit::rbd::TransformBase<scalar_t>;
     Transform() : Base(0) {} // calls explicit constructor setting data to 0
 };
 
@@ -93,12 +99,12 @@ struct frameA_X_frameB : public Transform<frameA_X_frameB>
     }
     const frameA_X_frameB& update();
 
-    A_XM_B frameA_XM_frameB() const { return as<A_XM_B>(); }
-    B_XM_A frameB_XM_frameA() const { return as<B_XM_A>(); }
-    A_XF_B frameA_XF_frameB() const { return as<A_XF_B>(); }
-    B_XF_A frameB_XF_frameA() const { return as<B_XF_A>(); }
-    A_XH_B frameA_XH_frameB() const { return as<A_XH_B>(); }
-    B_XH_A frameB_XH_frameA() const { return as<B_XH_A>(); }
+    A_XM_B frameA_XM_frameB() const { return this->template as<A_XM_B>(); }
+    B_XM_A frameB_XM_frameA() const { return this->template as<B_XM_A>(); }
+    A_XF_B frameA_XF_frameB() const { return this->template as<A_XF_B>(); }
+    B_XF_A frameB_XF_frameA() const { return this->template as<B_XF_A>(); }
+    A_XH_B frameA_XH_frameB() const { return this->template as<A_XH_B>(); }
+    B_XH_A frameB_XH_frameA() const { return this->template as<B_XH_A>(); }
 
 };
 
@@ -111,12 +117,12 @@ struct frameD_X_frameB : public Transform<frameD_X_frameB>
     }
     const frameD_X_frameB& update();
 
-    A_XM_B frameD_XM_frameB() const { return as<A_XM_B>(); }
-    B_XM_A frameB_XM_frameD() const { return as<B_XM_A>(); }
-    A_XF_B frameD_XF_frameB() const { return as<A_XF_B>(); }
-    B_XF_A frameB_XF_frameD() const { return as<B_XF_A>(); }
-    A_XH_B frameD_XH_frameB() const { return as<A_XH_B>(); }
-    B_XH_A frameB_XH_frameD() const { return as<B_XH_A>(); }
+    A_XM_B frameD_XM_frameB() const { return this->template as<A_XM_B>(); }
+    B_XM_A frameB_XM_frameD() const { return this->template as<B_XM_A>(); }
+    A_XF_B frameD_XF_frameB() const { return this->template as<A_XF_B>(); }
+    B_XF_A frameB_XF_frameD() const { return this->template as<B_XF_A>(); }
+    A_XH_B frameD_XH_frameB() const { return this->template as<A_XH_B>(); }
+    B_XH_A frameB_XH_frameD() const { return this->template as<B_XH_A>(); }
 
 protected:
     const Parameters& parameters;
@@ -128,12 +134,12 @@ struct frameE_X_frameG : public Transform<frameE_X_frameG>
     frameE_X_frameG();
     const frameE_X_frameG& update(const state_t&);
 
-    A_XM_B frameE_XM_frameG() const { return as<A_XM_B>(); }
-    B_XM_A frameG_XM_frameE() const { return as<B_XM_A>(); }
-    A_XF_B frameE_XF_frameG() const { return as<A_XF_B>(); }
-    B_XF_A frameG_XF_frameE() const { return as<B_XF_A>(); }
-    A_XH_B frameE_XH_frameG() const { return as<A_XH_B>(); }
-    B_XH_A frameG_XH_frameE() const { return as<B_XH_A>(); }
+    A_XM_B frameE_XM_frameG() const { return this->template as<A_XM_B>(); }
+    B_XM_A frameG_XM_frameE() const { return this->template as<B_XM_A>(); }
+    A_XF_B frameE_XF_frameG() const { return this->template as<A_XF_B>(); }
+    B_XF_A frameG_XF_frameE() const { return this->template as<B_XF_A>(); }
+    A_XH_B frameE_XH_frameG() const { return this->template as<A_XH_B>(); }
+    B_XH_A frameG_XH_frameE() const { return this->template as<B_XH_A>(); }
 
 };
 

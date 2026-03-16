@@ -2,14 +2,11 @@
 
 using CtgenSample::ctgen::scalar_t;
 
-const scalar_t CtgenSample::ctgen::ModelConstants::c0{0.2};
-const scalar_t CtgenSample::ctgen::ModelConstants::c1{3.1};
-const scalar_t CtgenSample::ctgen::ModelConstants::rz{0.6};
 
-const scalar_t CtgenSample::ctgen::Constants::s__c0{ScalarTraits::sin(ModelConstants::c0)};
-const scalar_t CtgenSample::ctgen::Constants::c__c0{ScalarTraits::cos(ModelConstants::c0)};
-const scalar_t CtgenSample::ctgen::Constants::s__rz{ScalarTraits::sin(ModelConstants::rz)};
-const scalar_t CtgenSample::ctgen::Constants::c__rz{ScalarTraits::cos(ModelConstants::rz)};
+
+
+
+
 
 
 
@@ -112,6 +109,7 @@ const typename CtgenSample::ctgen::frameE_X_frameG& CtgenSample::ctgen::frameE_X
 CtgenSample::ctgen::Transforms::Transforms(const ModelParameters& initial) :
 m_frameA_X_frameB(),m_frameD_X_frameB(parameters),m_frameE_X_frameG(), parameters(initial)
 {}
+
 
 CtgenSample::ctgen::Transforms::Transforms() :
 m_frameA_X_frameB(),m_frameD_X_frameB(parameters),m_frameE_X_frameG(), parameters(/*do we want the default instance of ModelParameters ?*/)
